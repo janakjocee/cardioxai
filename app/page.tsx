@@ -21,8 +21,11 @@ import {
   RefreshCw,
   Layers,
   ChevronRight,
-  Info
+  Info,
+  Database,
+  Printer
 } from 'lucide-react';
+import { RiskGauge, MetricCard, ProbabilityBar, ShapBar, AlertBanner, SectionCard } from '@/components/ui';
 
 interface PredictionResponse {
   predictions: {
@@ -74,7 +77,7 @@ interface PredictionResponse {
 }
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'assessment' | 'xai' | 'counterfactual' | 'benchmarks' | 'fairness' | 'report'>('assessment');
+  const [activeTab, setActiveTab] = useState<'assessment' | 'xai' | 'counterfactual' | 'benchmarks' | 'fairness' | 'cohort' | 'report'>('assessment');
   const [targetDisease, setTargetDisease] = useState<'cvd' | 'diabetes'>('cvd');
 
   // Patient inputs
@@ -266,11 +269,39 @@ export default function Home() {
             </div>
 
             <button
-              onClick={() => window.print()}
+              onClick={() => {
+                setActiveTab('report');
+                setTimeout(() => window.print(), 300);
+              }}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors border border-slate-200"
             >
+              <Printer className="w-3.5 h-3.5" />
+              Print Report
+            </button>
+            <button
+              onClick={() => {
+                const reportData = {
+                  metadata: {
+                    report_id: `CARDIOXAI-${Date.now()}`,
+                    assessment_date: new Date().toISOString(),
+                    guidelines: 'ACC/AHA 2017 & ESC 2021 Clinical Prevention Standards',
+                  },
+                  patient_parameters: patientData,
+                  prediction: results?.predictions,
+                  hemodynamics: results?.features,
+                  xai_attributions: results?.xai,
+                };
+                const blob = new Blob([JSON.stringify(reportData, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `cardioxai-patient-report.json`;
+                a.click();
+              }}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors border border-indigo-200"
+            >
               <Download className="w-3.5 h-3.5" />
-              Export PDF
+              Export JSON
             </button>
           </div>
         </div>
@@ -284,6 +315,7 @@ export default function Home() {
               { id: 'counterfactual', label: 'Counterfactual Simulator', icon: Sliders },
               { id: 'benchmarks', label: 'Benchmark Matrix (B0–B7)', icon: BarChart3 },
               { id: 'fairness', label: 'Fairness & Subgroup Audit', icon: Scale },
+              { id: 'cohort', label: '70k Cohort & Provenance', icon: Database },
               { id: 'report', label: 'Clinical Consultation Summary', icon: FileText },
             ].map(tab => {
               const Icon = tab.icon;
@@ -1269,7 +1301,221 @@ export default function Home() {
           </div>
         )}
 
-        {/* TAB 6: CLINICAL CONSULTATION SUMMARY (PDF READY) */}
+        {/* TAB 6: AUTHENTIC 70K COHORT & DATA PROVENANCE */}
+        {activeTab === 'cohort' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between pb-4 mb-4 border-b border-slate-100 gap-3">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-600">
+                    <Database className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-slate-900">Authentic Real-World Cohort Provenance & Quality Audit</h3>
+                    <p className="text-xs text-slate-500">
+                      Primary CVD Dataset (Kaggle ~70k) • Secondary T2D Transferability Cohort (CDC BRFSS ~71k) • Clinical Cross-Check (UCI 303)
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    Verified Real-World Datasets
+                  </span>
+                </div>
+              </div>
+
+              {/* High-Level Overview Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Primary CVD Cohort</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 text-indigo-700">Kaggle / Sulianova</span>
+                  </div>
+                  <div className="text-2xl font-black text-slate-900">70,000</div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Authentic clinical examination cohort; 68,610 valid records retained (98.01% quality retention) after rigorous physiological filtering.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Secondary T2D Target</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-100 text-blue-700">CDC BRFSS Survey</span>
+                  </div>
+                  <div className="text-2xl font-black text-slate-900">70,692</div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Behavioral Risk Factor Surveillance System 50-50 balanced split used for Benchmark B7 transferability validation.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-600">Clinical Cross-Check</span>
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-700">UCI Cleveland</span>
+                  </div>
+                  <div className="text-2xl font-black text-slate-900">303</div>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Canonical Detrano et al. angiography clinical dataset used as an external comparability baseline floor.
+                  </p>
+                </div>
+              </div>
+
+              {/* Data Cleaning & Physiological Plausibility Audit */}
+              <div className="mb-6 p-5 rounded-xl border border-slate-200 bg-slate-50/60">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-800 mb-3 flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  Clinical Plausibility & Outlier Recoding Protocol (Section 3.4.1)
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                  <div className="bg-white p-3 rounded-lg border border-slate-200">
+                    <span className="text-slate-500 block text-[11px]">Systolic BP (ap_hi):</span>
+                    <span className="font-bold text-slate-800">[70, 240] mmHg</span>
+                    <p className="text-[10px] text-slate-400 mt-0.5">Filters negative and typist values (&gt;10,000)</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-slate-200">
+                    <span className="text-slate-500 block text-[11px]">Diastolic BP (ap_lo):</span>
+                    <span className="font-bold text-slate-800">[40, 150] mmHg</span>
+                    <p className="text-[10px] text-slate-400 mt-0.5">Filters impossible low and negative pressures</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-slate-200">
+                    <span className="text-slate-500 block text-[11px]">Hemodynamic Logic:</span>
+                    <span className="font-bold text-slate-800">ap_hi &gt; ap_lo</span>
+                    <p className="text-[10px] text-slate-400 mt-0.5">Requires positive pulse pressure</p>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-slate-200">
+                    <span className="text-slate-500 block text-[11px]">Anthropometrics:</span>
+                    <span className="font-bold text-slate-800">H: 120-220 cm, W: 30-200 kg</span>
+                    <p className="text-[10px] text-slate-400 mt-0.5">Physiologically valid adult human limits</p>
+                  </div>
+                </div>
+                <div className="mt-3 text-xs text-slate-600 flex items-center justify-between">
+                  <span>Outliers removed: <strong className="text-slate-800">1,390 records</strong> (1.99% attrition)</span>
+                  <span>Cohort retained: <strong className="text-emerald-700">68,610 authentic patients</strong> (98.01%)</span>
+                </div>
+              </div>
+
+              {/* Primary Cohort Demographic & Clinical Profile Table */}
+              <div className="border border-slate-200 rounded-xl overflow-hidden mb-6">
+                <div className="bg-slate-100 px-4 py-2.5 font-bold text-xs text-slate-800 flex justify-between items-center">
+                  <span>Primary CVD Cohort Distributions & Clinical Baseline Statistics</span>
+                  <span className="text-[11px] font-normal text-slate-500">Source: Observational Examination Records</span>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full text-xs text-left">
+                    <thead className="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+                      <tr>
+                        <th className="py-2.5 px-4">Attribute Name</th>
+                        <th className="py-2.5 px-4">Clinical Modality</th>
+                        <th className="py-2.5 px-4">Distribution / Frequency</th>
+                        <th className="py-2.5 px-4">Physiological Normal Range</th>
+                        <th className="py-2.5 px-4">Clinical Role in Model</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100 font-medium">
+                      <tr>
+                        <td className="py-2.5 px-4 font-bold text-slate-900">Age</td>
+                        <td className="py-2.5 px-4 text-slate-600">Demographic (D)</td>
+                        <td className="py-2.5 px-4 font-mono">53.3 ± 6.8 yrs (30 to 65)</td>
+                        <td className="py-2.5 px-4 text-slate-500">Adult population</td>
+                        <td className="py-2.5 px-4 text-indigo-600">Dual-branch conditioning</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2.5 px-4 font-bold text-slate-900">Biological Sex</td>
+                        <td className="py-2.5 px-4 text-slate-600">Demographic (D)</td>
+                        <td className="py-2.5 px-4 font-mono">65.2% Female / 34.8% Male</td>
+                        <td className="py-2.5 px-4 text-slate-500">Binary biological</td>
+                        <td className="py-2.5 px-4 text-indigo-600">Fairness audit stratified</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2.5 px-4 font-bold text-slate-900">Systolic BP (ap_hi)</td>
+                        <td className="py-2.5 px-4 text-slate-600">Clinical (Group C)</td>
+                        <td className="py-2.5 px-4 font-mono">126.7 ± 16.7 mmHg</td>
+                        <td className="py-2.5 px-4 text-emerald-600">&lt;120 mmHg (AHA 2017)</td>
+                        <td className="py-2.5 px-4 text-indigo-600">Primary hemodynamics</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2.5 px-4 font-bold text-slate-900">Diastolic BP (ap_lo)</td>
+                        <td className="py-2.5 px-4 text-slate-600">Clinical (Group C)</td>
+                        <td className="py-2.5 px-4 font-mono">81.3 ± 9.4 mmHg</td>
+                        <td className="py-2.5 px-4 text-emerald-600">&lt;80 mmHg (AHA 2017)</td>
+                        <td className="py-2.5 px-4 text-indigo-600">Arterial resistance</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2.5 px-4 font-bold text-slate-900">BMI</td>
+                        <td className="py-2.5 px-4 text-slate-600">Clinical (Group C)</td>
+                        <td className="py-2.5 px-4 font-mono">27.5 ± 5.3 kg/m²</td>
+                        <td className="py-2.5 px-4 text-slate-500">18.5 – 24.9 kg/m²</td>
+                        <td className="py-2.5 px-4 text-indigo-600">Metabolic risk factor</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2.5 px-4 font-bold text-slate-900">Tobacco Smoking</td>
+                        <td className="py-2.5 px-4 text-slate-600">Lifestyle (Group L)</td>
+                        <td className="py-2.5 px-4 font-mono">8.8% Active Smokers</td>
+                        <td className="py-2.5 px-4 text-emerald-600">0% (Complete cessation)</td>
+                        <td className="py-2.5 px-4 text-indigo-600">Endothelial injury factor</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2.5 px-4 font-bold text-slate-900">Alcohol Consumption</td>
+                        <td className="py-2.5 px-4 text-slate-600">Lifestyle (Group L)</td>
+                        <td className="py-2.5 px-4 font-mono">5.4% Regular Drinkers</td>
+                        <td className="py-2.5 px-4 text-slate-500">&le;14 units/week (UK CMO)</td>
+                        <td className="py-2.5 px-4 text-indigo-600">Hemodynamic modifier</td>
+                      </tr>
+                      <tr>
+                        <td className="py-2.5 px-4 font-bold text-slate-900">Physical Activity</td>
+                        <td className="py-2.5 px-4 text-slate-600">Lifestyle (Group L)</td>
+                        <td className="py-2.5 px-4 font-mono">80.4% Physically Active</td>
+                        <td className="py-2.5 px-4 text-emerald-600">&ge;150 min/wk moderate</td>
+                        <td className="py-2.5 px-4 text-indigo-600">Protective metabolic factor</td>
+                      </tr>
+                      <tr className="bg-indigo-50/40">
+                        <td className="py-2.5 px-4 font-bold text-indigo-950">Cardiovascular Disease (cardio)</td>
+                        <td className="py-2.5 px-4 text-slate-600">Target Ground Truth</td>
+                        <td className="py-2.5 px-4 font-mono font-bold text-indigo-700">49.47% Positive (33,944 / 68,610)</td>
+                        <td className="py-2.5 px-4 text-slate-500">Balanced 50-50 cohort</td>
+                        <td className="py-2.5 px-4 text-indigo-700 font-bold">Binary prediction objective</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Clinical Guidelines Accordion */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-4 rounded-xl border border-slate-200 bg-white">
+                  <h4 className="text-xs font-bold text-slate-900 mb-2 flex items-center gap-1.5">
+                    <ShieldCheck className="w-4 h-4 text-indigo-600" />
+                    ACC/AHA 2017 Blood Pressure Practice Guidelines
+                  </h4>
+                  <ul className="text-xs space-y-1.5 text-slate-600">
+                    <li><strong className="text-emerald-700">Normal:</strong> SBP &lt; 120 and DBP &lt; 80 mmHg</li>
+                    <li><strong className="text-blue-700">Elevated:</strong> SBP 120–129 and DBP &lt; 80 mmHg (Lifestyle therapy)</li>
+                    <li><strong className="text-amber-700">Stage 1 HTN:</strong> SBP 130–139 or DBP 80–89 mmHg (Risk-based Rx)</li>
+                    <li><strong className="text-red-700">Stage 2 HTN:</strong> SBP &ge; 140 or DBP &ge; 90 mmHg (Combination Rx)</li>
+                    <li><strong className="text-red-800">Hypertensive Crisis:</strong> SBP &gt; 180 and/or DBP &gt; 120 mmHg (Emergency)</li>
+                  </ul>
+                </div>
+
+                <div className="p-4 rounded-xl border border-slate-200 bg-white">
+                  <h4 className="text-xs font-bold text-slate-900 mb-2 flex items-center gap-1.5">
+                    <Heart className="w-4 h-4 text-rose-600" />
+                    ESC 2021 Prevention Guidelines Targets
+                  </h4>
+                  <ul className="text-xs space-y-1.5 text-slate-600">
+                    <li><strong>Smoking:</strong> Complete cessation reduces excess CVD mortality by 50% within 1 year.</li>
+                    <li><strong>Diet:</strong> Mediterranean/DASH protocol reduces incident events by 15-20%.</li>
+                    <li><strong>Exercise:</strong> 150-300 min/wk moderate or 75-150 min/wk vigorous aerobic activity.</li>
+                    <li><strong>BP Target:</strong> Aim for SBP 120–130 mmHg in adults under 70 years if tolerated.</li>
+                    <li><strong>BMI Target:</strong> Healthy weight 20–25 kg/m²; weight reduction if BMI &gt; 25.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 7: CLINICAL CONSULTATION SUMMARY (PDF READY) */}
         {activeTab === 'report' && (
           <div className="bg-white rounded-2xl p-8 border border-slate-200 shadow-sm max-w-4xl mx-auto print:shadow-none print:border-none">
             {/* Report Header */}
