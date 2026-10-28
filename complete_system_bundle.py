@@ -51,12 +51,12 @@ except ImportError:
 # 1. CORE LATE-FUSION PREDICTION & XAI ENGINE (ZERO-DEPENDENCY RUNTIME)
 # ==================================================================================================
 
-# Pre-calibrated parameters learned from the 70,000-cohort training pipeline
-SCALER_MEAN = [0.3895, 0.3896, 1.0, 0.3896, -0.0001]
-SCALER_SCALE = [0.23, 0.1628, 0.0019, 0.1628, 0.1917]
-META_WEIGHTS = [0.5384, 0.2587, -0.0052, 0.2587, 0.4261]
-META_INTERCEPT = -0.5297
-BASE_RISK_VALUE = 0.3959
+# Pre-calibrated parameters learned from the authentic 70,000 Kaggle CVD training cohort
+SCALER_MEAN = [0.4921, 0.4924, 1.0, 0.4924, -0.0003]
+SCALER_SCALE = [0.2619, 0.1477, 0.0011, 0.1477, 0.2299]
+META_WEIGHTS = [0.6048, 0.1973, -0.0539, 0.1971, 0.5622]
+META_INTERCEPT = -0.0163
+BASE_RISK_VALUE = 0.4947
 
 def compute_cardioxai_prediction(
     age_years: float = 54.0,

@@ -87,11 +87,11 @@ export async function POST(request: Request) {
 
     // 5. Meta-Learner Late-Fusion Layer with Reliability Weighting (Section 3.6.3)
     // Feature vector: [p_C, p_L, r, p_L * r, (p_C - p_L) * r]
-    // Normalized by learned scaler means and scales
-    const scaler_mean = [0.3895, 0.3896, 1.0, 0.3896, -0.0001];
-    const scaler_scale = [0.23, 0.1628, 0.0019, 0.1628, 0.1917];
-    const meta_weights = [0.5384, 0.2587, -0.0052, 0.2587, 0.4261];
-    const meta_intercept = -0.5297;
+    // Normalized by learned scaler means and scales from authentic 70k Kaggle cohort
+    const scaler_mean = [0.4921, 0.4924, 1.0, 0.4924, -0.0003];
+    const scaler_scale = [0.2619, 0.1477, 0.0011, 0.1477, 0.2299];
+    const meta_weights = [0.6048, 0.1973, -0.0539, 0.1971, 0.5622];
+    const meta_intercept = -0.0163;
 
     const raw_feats = [
       p_c,
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
     const p_fused = Number((1.0 / (1.0 + Math.exp(-z_meta))).toFixed(4));
 
     // 6. Explainable AI: SHAP Local Attributions
-    const base_value = 0.3959; // Population base risk
+    const base_value = 0.4947; // Population base risk from authentic 70k Kaggle cohort
     const total_diff = p_fused - base_value;
 
     const raw_shap = [
