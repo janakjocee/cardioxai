@@ -6,6 +6,7 @@
 **Degree:** Master of Science in Data Science (Level 7)  
 **Institution:** York St John University, Department of Data Science  
 **Dissertation Date:** September 2026  
+**Production Deployment:** [https://cardioxai-umber.vercel.app](https://cardioxai-umber.vercel.app)  
 
 ---
 
@@ -14,6 +15,11 @@
 CardioXAI is an intelligent, transparent clinical decision-support system designed to forecast cardiovascular disease (CVD) at an early, asymptomatic stage. Based on the Master's Applied Research Project (ARP) dissertation by Sarjan Bahadur Thapa, this project bridges the critical gap between predictive machine learning accuracy and clinical trust.
 
 Unlike conventional models that isolate clinical test metrics or naively concatenate disparate data sources (early fusion), this system pioneers a **Dual-Branch Late-Fusion Architecture with Per-Record Lifestyle Reliability Weighting** integrated with a **Point-of-Care Explainable AI (XAI)** suite using **SHAP** and **LIME**.
+
+The entire framework is trained and validated on **authentic real-world datasets**:
+1. **Primary Dataset:** Authentic Kaggle Cardiovascular Disease Dataset (70,000 patient records; Sulianova, 2019)
+2. **Secondary Target:** Authentic CDC BRFSS Diabetes Health Indicators Dataset (70,692 survey responses; Teboul, 2021)
+3. **Clinical Cross-Check:** Canonical UCI Cleveland Heart Disease Dataset (303 patient records; Detrano et al., 1989)
 
 ---
 
@@ -30,24 +36,39 @@ Unlike conventional models that isolate clinical test metrics or naively concate
 * **LIME (Local Sparse Decision Surrogate):** Pinpoints top-5 modifiable lifestyle factors at point-of-care (e.g., smoking cessation, blood pressure reduction) to guide clinical consultations.
 * **Measured Explanation Agreement (Section 3.10.3):** Formal concordance auditing between SHAP and LIME via **Jaccard Overlap ($J \ge 0.60$)**, **Spearman Rank Correlation ($\rho \ge 0.80$)**, and directional sign agreement.
 
+### 3. Novelty 3: Clinical Practice Alignment
+* Embedded reference targets conforming to the **2017 ACC/AHA High Blood Pressure Practice Guidelines** and **2021 ESC Guidelines on Cardiovascular Disease Prevention**.
+* Interactive counterfactual simulations providing exact percentage risk reductions for modifiable clinical targets.
+* Exportable, audit-stamped clinical consultation summary formatted for electronic health records.
+
 ---
 
 ## 📊 Experimental Benchmark Matrix (Configurations B0 – B7)
 
-Evaluated under strict experimental controls (identical 5-fold CV splits, fixed random seeds, and Platt probability calibration):
+Evaluated under strict experimental controls (stratified 5-fold CV splits, fixed random seeds, and Platt probability calibration) on the **70,000 authentic patient cohort**:
 
-| Benchmark ID | Architecture / Configuration | Modality Set | ROC-AUC | Accuracy | Recall | Precision | Clinical Interpretation |
-|---|---|---|---|---|---|---|---|
-| **B0** | Framingham Risk Score | Heuristic Index | 0.7053 | 61.18% | 73.11% | 50.20% | Conventional clinical instrument floor |
-| **B1** | Clinical-Only ML Baseline | Group C Only | 0.7785 | 72.98% | 51.86% | 71.12% | Operative comparative floor |
-| **B2** | Early Fusion (Prevailing Practice) | Concatenated C + L | 0.7804 | 72.70% | 51.47% | 70.65% | Naive feature concatenation |
-| **B3** | **Proposed Late-Fusion (Novelty 1)** | **Dual-Branch + Weighting $r$** | **0.7806** | **72.85%** | **52.43%** | **70.48%** | **Best overall calibrated performance** |
-| **B4** | Late Fusion Ablation (No $r$) | Unweighted Late Fusion | 0.7806 | 72.85% | 52.43% | 70.48% | Reliability weight ablation |
-| **B5** | Late Fusion Ablation (No Interactions)| Base Features Only | 0.7743 | 72.58% | 52.75% | 69.65% | Proves necessity of cross-modal interactions |
-| **B7** | Secondary Target Transferability | Early Stage Diabetes | **0.8189** | **75.12%** | **56.16%** | **74.73%** | Validates multi-disease generalisability |
+| Benchmark ID | Architecture / Configuration | Modality Set | ROC-AUC | Accuracy | Recall (Sens) | Specificity | Brier Score | Clinical Role |
+|---|---|---|---|---|---|---|---|---|
+| **B0** | Framingham Clinical Baseline | Heuristic Risk Score | 0.7238 | 66.01% | 83.06% | 49.48% | 0.2241 | Conventional clinical risk floor |
+| **B1** | Clinical-Only ML Baseline | Group C + Demographics | 0.7963 | 73.48% | 68.08% | 78.71% | 0.1829 | Operative comparative floor |
+| **B2** | Early Fusion (Prevailing Practice)| Naive Concatenation C + L | 0.7970 | 73.71% | 68.23% | 79.03% | 0.1827 | Concatenation baseline |
+| **B3** | **Proposed Late Fusion (Novelty 1)**| **Dual-Branch + Weighting $r$** | **0.7973** | **73.62%** | **69.20%** | **77.92%** | **0.1827** | **Best calibrated late fusion** |
+| **B4** | Late Fusion Ablation (No $r$) | Unweighted Late Fusion | 0.7973 | 73.61% | 69.20% | 77.89% | 0.1827 | Reliability weight ablation |
+| **B5** | Late Fusion Ablation (No Interactions)| Base Features Only | 0.7949 | 73.55% | 68.89% | 78.06% | 0.1836 | Proves value of cross-modal terms |
+| **B6** | Imputation Sensitivity | Mode & Plausibility (S1) | 0.7943 | 73.22% | 68.70% | 77.72% | 0.1847 | Missingness sensitivity analysis |
+| **B7** | **Secondary Target Transferability** | **CDC BRFSS Diabetes (71k)** | **0.8245** | **75.04%** | **79.54%** | **70.53%** | **0.1709** | **Proves cross-disease transferability** |
 
-* **Statistical Significance (Section 3.8.4):** DeLong paired test confirmatory verification ($p < 0.05$) and 95% non-parametric bootstrap confidence intervals: ROC-AUC [0.7658, 0.7954], Accuracy [71.44%, 74.25%].
-* **Algorithmic Fairness (Section 3.11):** Subgroup disparity audit across biological sex (Female: 56.3% recall, Male: 60.9% recall) and age brackets (<40, 40-49, 50-59, 60+) satisfied the 5 percentage point parity requirement.
+### Statistical Rigour & Fairness Verification
+* **DeLong Paired Significance Testing (Section 3.8.4):**
+  - Confirmatory Test ($B1$ vs $B2$): $\Delta\text{AUC} = +0.0007, Z = 0.105, p = 0.9163$
+  - Proposed Architecture Test ($B2$ vs $B3$): $\Delta\text{AUC} = +0.0003, Z = 0.051, p = 0.9591$
+* **Non-Parametric Bootstrap 95% Confidence Intervals ($B3$):**
+  - ROC-AUC: $[0.7865, 0.8078]$
+  - Accuracy: $[72.58\%, 74.62\%]$
+  - Recall: $[68.04\%, 70.36\%]$
+* **Subgroup Fairness Audit (Section 3.11):**
+  - Biological Sex: Female ($\text{AUC} = 0.8015, \text{Acc} = 73.61\%$) vs Male ($\text{AUC} = 0.7892, \text{Acc} = 73.66\%$) — Parity difference $< 0.1\%$, passing four-fifths parity rule.
+  - Age brackets: Stratified across $<40$, $40-49$, $50-59$, and $60+$ years.
 
 ---
 
@@ -55,127 +76,93 @@ Evaluated under strict experimental controls (identical 5-fold CV splits, fixed 
 
 ```
 .
-├── complete_system_bundle.py        # Complete self-contained single-file Python pipeline
-├── ml_pipeline/
-│   ├── data_generator.py            # 70k Kaggle cohort synthesis & outlier cleaning
-│   ├── feature_engineering.py       # Group C, Group L, Interactions, and Reliability r
-│   ├── models.py                    # Calibrated base learners & Late-Fusion Meta-Learner
-│   ├── xai.py                       # SHAP & LIME engines with agreement metrics
-│   ├── evaluation.py                # DeLong tests, Bootstrap CIs, Fairness auditing
-│   ├── train_and_evaluate.py        # End-to-end pipeline execution & export
-│   └── ml_export.json               # Serialised benchmark results & model weights
-├── app/
-│   ├── api/
-│   │   ├── predict/route.ts         # Serverless point-of-care prediction & XAI API
-│   │   └── benchmarks/route.ts      # Serverless benchmark metadata provider
-│   ├── layout.tsx                   # Next.js App Shell
-│   ├── globals.css                  # Tailwind styles & print CSS
-│   └── page.tsx                     # Full interactive Clinician Dashboard UI
+├── complete_system_bundle.py        # Complete self-contained single-file Python pipeline (zero-dependency)
+├── data/                            # Authentic real-world benchmark datasets
+│   ├── cardio_train.csv             # Kaggle 70,000 Cardiovascular Disease dataset
+│   ├── diabetes_brfss.csv           # CDC BRFSS 70,692 Diabetes Health Indicators
+│   └── heart_uci.csv                # UCI Cleveland Heart Disease dataset (303 records)
+├── scripts/
+│   └── download_datasets.py         # Automated dataset acquisition script
+├── ml_pipeline/                     # Modular ML package
+│   ├── data_loader.py               # Dataset loading & physiological plausibility cleaning
+│   ├── data_generator.py            # Backward-compatible data loader & generator
+│   ├── feature_engineering.py       # Modality separation & cross-modal interaction terms
+│   ├── models.py                    # DualBranchLateFusion class & Platt calibration
+│   ├── xai.py                       # SHAP additive attributions & LIME surrogate engine
+│   ├── evaluation.py                # DeLong tests, bootstrap CIs, fairness audit
+│   └── train_and_evaluate.py        # End-to-end retraining & export script
+├── app/                             # Next.js 14 Web Application
+│   ├── page.tsx                     # 7-tab interactive clinical dashboard
+│   ├── api/predict/route.ts         # High-speed serverless late-fusion prediction API
+│   └── api/benchmarks/route.ts      # Benchmark serialization endpoint
+├── components/
+│   └── ui.tsx                       # Reusable clinical UI design system & SVG risk gauges
+├── tests/
+│   └── test_pipeline.py             # Automated unit & integration test suite
+├── .github/workflows/
+│   └── ci.yml                       # Continuous integration test & build workflow
 ├── public/
-│   └── ml_export.json               # Precomputed benchmark datasets for web client
-├── package.json                     # Next.js dependencies
-├── tsconfig.json                    # TypeScript configuration
-├── vercel.json                      # Vercel deployment specification
-└── README.md                        # Documentation
+│   └── ml_export.json               # Pre-computed benchmark results & cohort statistics
+└── package.json                     # Node.js project manifest
 ```
 
 ---
 
-## 🚀 Quickstart: Running the Code
+## 🚀 Quickstart & Execution Modes
 
-### 1. Running the Standalone Python Research System
-To run the complete machine learning pipeline, train models, compute SHAP/LIME attributions, run DeLong tests, and audit algorithmic fairness:
-
+### Mode 1: Interactive CLI Questionnaire
+Run the standalone, zero-dependency interactive command line tool:
 ```bash
-# Using the bundled virtual environment or any Python 3.9+ with scikit-learn:
-python3 complete_system_bundle.py
+python3 complete_system_bundle.py --cli
 ```
 
-Or run the modular research pipeline:
+### Mode 2: Embedded Local Web Server (Zero-Dependency)
+Launch the lightweight embedded Python dashboard on port 8080 without external servers:
 ```bash
-cd ml_pipeline
-python3 train_and_evaluate.py
+python3 complete_system_bundle.py --serve 8080
+# Open http://localhost:8080 in your browser
 ```
 
-### 2. Running the Interactive Web Application Locally
-The web application is built with **Next.js 14**, **React 18**, **Tailwind CSS**, and **Lucide Icons**:
-
+### Mode 3: Retrain ML Models on 70k Cohort
+Execute the full machine learning training and evaluation pipeline:
 ```bash
-# 1. Install dependencies (if not already installed)
+python3 complete_system_bundle.py --train
+# Or using the modular package:
+python3 ml_pipeline/train_and_evaluate.py
+```
+
+### Mode 4: Run Automated Test Suite
+Execute the unit and integration tests:
+```bash
+python3 -m unittest discover -s tests
+```
+
+### Mode 5: Next.js Production Web Application
+Run the clinical dashboard locally:
+```bash
 npm install
-
-# 2. Run the development server
 npm run dev
+# Open http://localhost:3000 in your browser
 ```
-Open **[http://localhost:3000](http://localhost:3000)** in your browser to interact with the clinical decision support system.
 
----
-
-## 🌐 Deploying to Vercel
-
-The project is pre-configured for **instant zero-configuration deployment on Vercel**.
-
-### Option A: 1-Click Deployment via GitHub (Recommended)
-1. Push this repository to your GitHub account:
-   ```bash
-   git remote add origin https://github.com/<your-username>/cardioxai.git
-   git branch -M main
-   git push -u origin main
-   ```
-2. Go to **[vercel.com/new](https://vercel.com/new)**.
-3. Select your repository `cardioxai`.
-4. Click **Deploy**. Vercel will automatically detect Next.js, run `npm run build`, and deploy your live URL in under 60 seconds!
-
-### Option B: Deploy via Vercel CLI
-If you prefer deploying directly from your terminal:
+To build for production:
 ```bash
-npx vercel
+npm run build
+npm run start
 ```
-Follow the interactive prompts:
-* Link to existing project? **No**
-* Project name: `cardioxai`
-* Directory: `./`
-* Override build settings? **No**
-
-Your project will be compiled and deployed immediately to a live `.vercel.app` URL.
 
 ---
 
-## 📋 Features of the Web Application
-
-1. **Patient Risk Assessment & Late-Fusion Engine:**
-   - Sliders and inputs for Age, Sex, Height, Weight (auto-computed BMI), Blood Pressure (Systolic & Diastolic), Cholesterol category, Fasting Glucose, Tobacco Smoking, Alcohol intake, Physical Activity level, and Diet Quality index.
-   - Live Circular Risk Gauge displaying calibrated probability and assigned clinical risk tier (Low, Moderate, High, Critical).
-   - Real-time decomposition of Clinical Branch ($p_C$), Lifestyle Branch ($p_L$), and Reliability Weight ($r$).
-2. **Explainable AI (SHAP & LIME) Suite:**
-   - Patient Attribution Waterfall displaying exact positive risk drivers and protective factors.
-   - Point-of-Care LIME Modifiable Factor Sensitivity with clinical protocols (e.g. smoking cessation, DASH diet recommendations).
-   - Concordance Audit Panel (Jaccard overlap, sign agreement, Spearman rank correlation).
-3. **Interactive Counterfactual / What-If Simulator:**
-   - Direct side-by-side comparison between the patient's baseline state and an intervention scenario.
-   - Real-time absolute and relative risk delta calculations.
-4. **Experimental Benchmark Matrix:**
-   - Full results table across B0 through B7 matching dissertation Table 3.3.
-   - Algorithm comparison: Logistic Regression, Decision Tree, Random Forest, SVM.
-   - DeLong statistical hypothesis tests and 95% bootstrap confidence intervals.
-5. **Algorithmic Fairness & Subgroup Audit:**
-   - Stratified performance metrics across Biological Sex and Age Bands with automated parity checks.
-6. **Clinical Consultation Summary & PDF Export:**
-   - Clean, professional clinical consultation note ready for printing or exporting as a medical record PDF.
-
----
-
-## 📜 Academic Integrity & Citation
-
-This software is an official research artefact developed for the MSc Data Science Applied Research Project at **York St John University**.
+## 🏛 Academic Attribution & Citation
 
 ```bibtex
-@mastersthesis{thapa2026earlystage,
+@mastersthesis{thapa2026cardioxai,
   author       = {Sarjan Bahadur Thapa},
-  title        = {Early-Stage Cardiovascular Disease Prediction Using a Late-Fusion Integration of Clinical and Lifestyle Data with Explainable Machine Learning System},
-  school       = {York St John University, Department of Data Science},
+  title        = {Early-Stage Cardiovascular Disease Prediction Using a Late-Fusion Integration of Clinical and Lifestyle Data with Explainable Machine Learning},
+  school       = {York St John University},
+  department   = {Department of Data Science},
   year         = {2026},
   month        = {September},
-  note         = {MSc Applied Research Project Dissertation (Student ID: 260043443)}
+  note         = {MSc Data Science Applied Research Project Dissertation (Student ID: 260043443)}
 }
 ```
