@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { globalAuditStore } from '@/lib/audit_trail';
 
 export interface PatientInput {
   age_years: number;
@@ -222,7 +223,30 @@ export async function POST(request: Request) {
       clinical_action = 'Lifestyle optimization: dietary counseling, structured exercise, and biannual blood pressure tracking.';
     }
 
+    // 8. Cryptographic Audit Recording (FDA 21 CFR Part 11 / EU MDR)
+    const auditRecord = globalAuditStore.append(
+      (data as any).patient_ref || 'CLINIC-PATIENT',
+      (data as any).clinician_ref || 'ATTENDING-MD',
+      (data as any).source_channel || 'ambulatory_portal',
+      { age, gender, height, weight, ap_hi, ap_lo, cholesterol, gluc, smoke, alco, active, diet_quality },
+      {
+        fused_probability: p_fused,
+        risk_tier,
+        clinical_branch_prob: p_c,
+        lifestyle_branch_prob: p_l,
+        reliability_score: r,
+        clinical_action
+      }
+    );
+
     return NextResponse.json({
+      audit_provenance: {
+        record_id: auditRecord.record_id,
+        timestamp: auditRecord.timestamp,
+        merkle_signature: auditRecord.merkle_signature,
+        model_version: auditRecord.model_metadata.model_version,
+        chain_sequence: auditRecord.sequence
+      },
       predictions: {
         clinical_branch_probability: p_c,
         lifestyle_branch_probability: p_l,

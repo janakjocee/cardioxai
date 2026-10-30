@@ -23,9 +23,15 @@ import {
   ChevronRight,
   Info,
   Database,
-  Printer
+  Printer,
+  Radio,
+  Lock,
+  FileCode
 } from 'lucide-react';
 import { RiskGauge, MetricCard, ProbabilityBar, ShapBar, AlertBanner, SectionCard } from '@/components/ui';
+import { RealTimeMonitor } from '@/components/RealTimeMonitor';
+import { AuditLedger } from '@/components/AuditLedger';
+import { FhirInspector } from '@/components/FhirInspector';
 
 interface PredictionResponse {
   predictions: {
@@ -77,7 +83,7 @@ interface PredictionResponse {
 }
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'assessment' | 'xai' | 'counterfactual' | 'benchmarks' | 'fairness' | 'cohort' | 'report'>('assessment');
+  const [activeTab, setActiveTab] = useState<'assessment' | 'telemetry' | 'fhir' | 'audit' | 'xai' | 'counterfactual' | 'benchmarks' | 'fairness' | 'cohort' | 'report'>('assessment');
   const [targetDisease, setTargetDisease] = useState<'cvd' | 'diabetes'>('cvd');
 
   // Patient inputs
@@ -308,9 +314,12 @@ export default function Home() {
 
         {/* Tab Navigation */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-100">
-          <nav className="flex space-x-1 sm:space-x-4 overflow-x-auto py-2 text-sm font-medium">
+          <nav className="flex space-x-1 sm:space-x-3 overflow-x-auto py-2 text-sm font-medium">
             {[
               { id: 'assessment', label: 'Patient Assessment & Late Fusion', icon: Activity },
+              { id: 'telemetry', label: 'Live Telemetry & Wearables', icon: Radio, highlight: true },
+              { id: 'fhir', label: 'FHIR R4 Interoperability', icon: FileCode },
+              { id: 'audit', label: 'Cryptographic Audit Ledger', icon: Lock },
               { id: 'xai', label: 'Explainable AI (SHAP & LIME)', icon: Layers },
               { id: 'counterfactual', label: 'Counterfactual Simulator', icon: Sliders },
               { id: 'benchmarks', label: 'Benchmark Matrix (B0–B7)', icon: BarChart3 },
@@ -324,13 +333,15 @@ export default function Home() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as any)}
-                  className={`flex items-center gap-2 px-3 py-2 rounded-lg whitespace-nowrap text-xs sm:text-sm transition-all ${
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-lg whitespace-nowrap text-xs transition-all ${
                     isActive
                       ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-100 shadow-sm'
+                      : tab.highlight
+                      ? 'text-rose-600 hover:text-rose-700 hover:bg-rose-50/70 font-semibold'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} />
+                  <Icon className={`w-3.5 h-3.5 ${isActive ? 'text-indigo-600' : tab.highlight ? 'text-rose-500 animate-pulse' : 'text-slate-400'}`} />
                   {tab.label}
                 </button>
               );
@@ -813,6 +824,21 @@ export default function Home() {
               </div>
             </div>
           </div>
+        )}
+
+        {/* TAB: REAL-TIME AMBULATORY TELEMETRY & WEARABLES */}
+        {activeTab === 'telemetry' && (
+          <RealTimeMonitor />
+        )}
+
+        {/* TAB: HL7 FHIR R4 CLINICAL INTEROPERABILITY */}
+        {activeTab === 'fhir' && (
+          <FhirInspector />
+        )}
+
+        {/* TAB: CRYPTOGRAPHIC CLINICAL AUDIT LEDGER */}
+        {activeTab === 'audit' && (
+          <AuditLedger />
         )}
 
         {/* TAB 2: EXPLAINABLE AI SUITE (SHAP & LIME) */}
