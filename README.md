@@ -131,13 +131,25 @@ python3 complete_system_bundle.py --train
 python3 ml_pipeline/train_and_evaluate.py
 ```
 
-### Mode 4: Run Automated Test Suite
-Execute the unit and integration tests:
+### Mode 4: Real-Time Ambulatory Telemetry Stream
+Run the continuous high-frequency vital signs stream with live late-fusion risk forecasting:
+```bash
+python3 complete_system_bundle.py --stream
+```
+
+### Mode 5: HL7 FHIR R4 Clinical Interoperability
+Evaluate a standard hospital FHIR Observation bundle and generate a FHIR RiskAssessment resource:
+```bash
+python3 complete_system_bundle.py --fhir
+```
+
+### Mode 6: Run Comprehensive Automated Test Suite
+Execute the unit and integration tests (including real-time streaming, FHIR R4, and audit verification):
 ```bash
 python3 -m unittest discover -s tests
 ```
 
-### Mode 5: Next.js Production Web Application
+### Mode 7: Next.js Production Web Application
 Run the clinical dashboard locally:
 ```bash
 npm install
@@ -150,6 +162,53 @@ To build for production:
 npm run build
 npm run start
 ```
+
+---
+
+## ⚡ Real-Time & Real-Life Clinical Architecture
+
+```
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │                      REAL-WORLD INGESTION MODALITIES                   │
+ │                                                                        │
+ │  [Wearables / Smartwatches]   [Hospital EHR (Epic/Cerner)]   [Clinics] │
+ │  Continuous ECG, BP, PPG, SpO2    HL7 FHIR R4 Observation     Consult  │
+ └───────────────────────┬───────────────────┬──────────────────────┬─────┘
+                         │                   │                      │
+                         ▼                   ▼                      ▼
+ ┌────────────────────────────────────────────────────────────────────────┐
+ │             CARDIOXAI REAL-TIME TEMPORAL PROCESSING ENGINE             │
+ │                                                                        │
+ │  * 1.0 Hz Sliding Window Aggregator: MAP, Pulse Pressure, RPP          │
+ │  * Dynamic Sensor Reliability Score r in [0, 1] (noise/contact quality)│
+ │  * Dual-Branch Late Fusion:                                            │
+ │      p_C (Hemodynamic/Lab Branch) + p_L (Continuous Behavioral Branch) │
+ │  * Calibrated Meta-Learner Layer (Trained on 70,000 real Kaggle cohort)│
+ └───────────────────────┬────────────────────────────────────────────────┘
+                         │
+        ┌────────────────┴────────────────────────┐
+        ▼                                         ▼
+ ┌───────────────────────────────┐ ┌──────────────────────────────────────┐
+ │   CRYPTOGRAPHIC AUDIT LEDGER  │ │  REAL-TIME CLINICAL ACTION & ALERTS  │
+ │                               │ │                                      │
+ │ * SHA-256 Merkle Hash Chain   │ │ * NEWS2 & Acute HTN Surge Detection  │
+ │ * Input & Model Fingerprinting│ │ * SBAR Structured Emergency Handover │
+ │ * FDA 21 CFR Part 11 / EU MDR │ │ * Point-of-Care SHAP & LIME Guidance │
+ │ * Tamper-Proof Verification   │ │ * HL7 FHIR R4 RiskAssessment Export  │
+ └───────────────────────────────┘ └──────────────────────────────────────┘
+```
+
+---
+
+## 📡 Production API Specifications
+
+| Method | Endpoint | Protocol / Standard | Description |
+|---|---|---|---|
+| `POST` | `/api/predict` | JSON / REST | Standard late-fusion risk inference with automatic cryptographic audit signing |
+| `GET` | `/api/stream` | Server-Sent Events (SSE) / REST | Real-time continuous ambulatory telemetry stream at 1.0 Hz |
+| `POST` | `/api/fhir` | HL7 FHIR Release 4 | Bidirectional EHR FHIR Bundle parsing and standard RiskAssessment generation |
+| `GET` | `/api/audit` | Cryptographic Ledger | Retrieve tamper-proof audit trail and verify SHA-256 chain integrity |
+| `GET` | `/api/benchmarks` | Static JSON Serialization | Serves precomputed 70k benchmark matrix (B0 through B7) |
 
 ---
 
