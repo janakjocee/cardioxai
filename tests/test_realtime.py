@@ -7,6 +7,8 @@ import unittest
 from ml_pipeline.stream_engine import RealTimeTelemetryEngine
 from ml_pipeline.fhir_converter import fhir_bundle_to_feature_dict, create_fhir_risk_assessment_resource, LOINC
 from ml_pipeline.audit_logger import CryptographicAuditLedger, GENESIS_HASH
+from ml_pipeline.conformal import InductiveConformalCalibrator
+import numpy as np
 
 
 class TestCardioXAIRealTime(unittest.TestCase):
@@ -118,6 +120,29 @@ class TestCardioXAIRealTime(unittest.TestCase):
         valid_tampered, err_tampered = ledger.verify_integrity()
         self.assertFalse(valid_tampered)
         self.assertIn('tampering', err_tampered.lower())
+
+    def test_06_conformal_calibrator_finite_sample_coverage(self):
+        """Verify inductive conformal calibrator computes valid 95% confidence intervals."""
+        calibrator = InductiveConformalCalibrator(alpha=0.05)
+        # Mock calibration on 100 samples
+        y_true = np.array([1, 0, 1, 1, 0, 1, 0, 0, 1, 0] * 10)
+        y_prob = np.array([0.9, 0.1, 0.8, 0.7, 0.2, 0.85, 0.15, 0.05, 0.95, 0.1] * 10)
+        calibrator.calibrate(y_true, y_prob)
+
+        res = calibrator.predict_interval(p_fused=0.65, reliability_r=1.0, pulse_pressure=45.0)
+        self.assertLessEqual(res['lower_bound'], 0.65)
+        self.assertGreaterEqual(res['upper_bound'], 0.65)
+        self.assertEqual(res['alpha'], 0.05)
+        self.assertEqual(res['coverage'], 0.95)
+
+    def test_07_conformal_uncertainty_expansion_on_sensor_decay(self):
+        """Verify that degraded reliability expands epistemic uncertainty interval width."""
+        calibrator = InductiveConformalCalibrator(alpha=0.05)
+        r_pristine = calibrator.predict_interval(p_fused=0.50, reliability_r=1.0, pulse_pressure=40.0)
+        r_degraded = calibrator.predict_interval(p_fused=0.50, reliability_r=0.4, pulse_pressure=80.0)
+
+        self.assertGreater(r_degraded['interval_width'], r_pristine['interval_width'])
+        self.assertIn(r_degraded['certainty_tier'], ['MODERATE_CERTAINTY', 'EPISTEMIC_AMBIGUITY'])
 
 
 if __name__ == '__main__':
