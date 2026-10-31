@@ -26,12 +26,19 @@ import {
   Printer,
   Radio,
   Lock,
-  FileCode
+  FileCode,
+  Bluetooth,
+  Hospital,
+  Dna
 } from 'lucide-react';
 import { RiskGauge, MetricCard, ProbabilityBar, ShapBar, AlertBanner, SectionCard } from '@/components/ui';
 import { RealTimeMonitor } from '@/components/RealTimeMonitor';
 import { AuditLedger } from '@/components/AuditLedger';
 import { FhirInspector } from '@/components/FhirInspector';
+import { BleConnector } from '@/components/BleConnector';
+import { SmartFhirLauncher } from '@/components/SmartFhirLauncher';
+import { GenomicsPanel } from '@/components/GenomicsPanel';
+import { DriftEquityMonitor } from '@/components/DriftEquityMonitor';
 
 interface PredictionResponse {
   predictions: {
@@ -42,6 +49,23 @@ interface PredictionResponse {
     risk_tier: string;
     risk_color: string;
     clinical_action: string;
+  };
+  conformal?: {
+    alpha: number;
+    coverage_nominal: string;
+    point_estimate: number;
+    p_lower: number;
+    p_upper: number;
+    interval_width: number;
+    certainty_tier: string;
+    alert: string | null;
+  };
+  genomics?: {
+    prs_percentile: number;
+    relative_risk: number;
+    combined_genetic_risk_tier: string;
+    high_risk_alleles_count: number;
+    clinical_recommendation: string;
   };
   features: {
     bmi: number;
@@ -83,7 +107,7 @@ interface PredictionResponse {
 }
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'assessment' | 'telemetry' | 'fhir' | 'audit' | 'xai' | 'counterfactual' | 'benchmarks' | 'fairness' | 'cohort' | 'report'>('assessment');
+  const [activeTab, setActiveTab] = useState<'assessment' | 'telemetry' | 'ble' | 'smart' | 'genomics' | 'drift' | 'fhir' | 'audit' | 'xai' | 'counterfactual' | 'benchmarks' | 'fairness' | 'cohort' | 'report'>('assessment');
   const [targetDisease, setTargetDisease] = useState<'cvd' | 'diabetes'>('cvd');
 
   // Patient inputs
@@ -318,6 +342,10 @@ export default function Home() {
             {[
               { id: 'assessment', label: 'Patient Assessment & Late Fusion', icon: Activity },
               { id: 'telemetry', label: 'Live Telemetry & Wearables', icon: Radio, highlight: true },
+              { id: 'ble', label: 'Web Bluetooth (BLE) Hardware', icon: Bluetooth, highlight: true },
+              { id: 'smart', label: 'SMART on FHIR EHR Launch', icon: Hospital },
+              { id: 'genomics', label: 'Multi-Omics Genomics (Branch 4)', icon: Dna },
+              { id: 'drift', label: 'Model Drift & Equity Monitor', icon: TrendingUp },
               { id: 'fhir', label: 'FHIR R4 Interoperability', icon: FileCode },
               { id: 'audit', label: 'Cryptographic Audit Ledger', icon: Lock },
               { id: 'xai', label: 'Explainable AI (SHAP & LIME)', icon: Layers },
@@ -819,6 +847,45 @@ export default function Home() {
                         Encodes internal consistency, plausibility, and data completeness (Section 3.6.2)
                       </span>
                     </div>
+
+                    {/* Distribution-Free Conformal Prediction Bounds (95% Finite-Sample Coverage) */}
+                    {results?.conformal && (
+                      <div className="bg-gradient-to-br from-indigo-50/70 to-blue-50/50 p-3.5 rounded-xl border border-indigo-200">
+                        <div className="flex justify-between items-center text-xs mb-1">
+                          <span className="font-bold text-indigo-950 flex items-center gap-1.5">
+                            <ShieldCheck className="w-3.5 h-3.5 text-indigo-600" />
+                            Conformal Prediction (95% Coverage)
+                          </span>
+                          <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 border border-indigo-200">
+                            {results.conformal.certainty_tier}
+                          </span>
+                        </div>
+                        <div className="flex items-baseline justify-between mt-1.5">
+                          <span className="text-xs text-slate-600">Empirical Interval:</span>
+                          <span className="font-mono font-bold text-indigo-900 text-sm">
+                            [{(results.conformal.p_lower * 100).toFixed(1)}% — {(results.conformal.p_upper * 100).toFixed(1)}%]
+                          </span>
+                        </div>
+                        <div className="w-full bg-slate-200 h-2 rounded-full mt-2 relative overflow-hidden">
+                          <div
+                            className="bg-indigo-600 h-2 rounded-full absolute"
+                            style={{
+                              left: `${results.conformal.p_lower * 100}%`,
+                              width: `${Math.max(2, (results.conformal.p_upper - results.conformal.p_lower) * 100)}%`
+                            }}
+                          />
+                        </div>
+                        <div className="flex justify-between text-[10px] text-slate-500 mt-1">
+                          <span>Spread (Width): {(results.conformal.interval_width * 100).toFixed(1)}%</span>
+                          <span>Finite-sample distribution-free</span>
+                        </div>
+                        {results.conformal.alert && (
+                          <div className="mt-2 text-[10px] p-1.5 rounded bg-amber-50 text-amber-800 border border-amber-200">
+                            ⚠️ {results.conformal.alert}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -829,6 +896,26 @@ export default function Home() {
         {/* TAB: REAL-TIME AMBULATORY TELEMETRY & WEARABLES */}
         {activeTab === 'telemetry' && (
           <RealTimeMonitor />
+        )}
+
+        {/* TAB: WEB BLUETOOTH PHYSICAL SENSOR PERIPHERAL */}
+        {activeTab === 'ble' && (
+          <BleConnector />
+        )}
+
+        {/* TAB: SMART ON FHIR EHR LAUNCH SANDBOX */}
+        {activeTab === 'smart' && (
+          <SmartFhirLauncher />
+        )}
+
+        {/* TAB: MULTI-OMICS GENOMICS MODALITY (BRANCH 4) */}
+        {activeTab === 'genomics' && (
+          <GenomicsPanel />
+        )}
+
+        {/* TAB: POPULATION DRIFT & HEALTH EQUITY MONITOR */}
+        {activeTab === 'drift' && (
+          <DriftEquityMonitor />
         )}
 
         {/* TAB: HL7 FHIR R4 CLINICAL INTEROPERABILITY */}

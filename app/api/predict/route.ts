@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import { globalAuditStore } from '@/lib/audit_trail';
+import { computeConformalRiskInterval } from '@/lib/conformal';
+import { evaluateGenomicModality } from '@/lib/genomics';
 
 export interface PatientInput {
   age_years: number;
@@ -15,6 +17,10 @@ export interface PatientInput {
   active: number;      // 0: Inactive, 1: Active
   diet_quality: number; // 1 (Poor) to 5 (Excellent)
   consistency_flag?: boolean; // True if self-report verified
+  snp_9p21?: 0 | 1 | 2;
+  snp_lpa?: 0 | 1 | 2;
+  apoe_genotype?: 'e3/e3' | 'e3/e4' | 'e4/e4' | 'e2/e3' | 'e2/e4';
+  family_history?: boolean;
 }
 
 export async function POST(request: Request) {
@@ -223,7 +229,18 @@ export async function POST(request: Request) {
       clinical_action = 'Lifestyle optimization: dietary counseling, structured exercise, and biannual blood pressure tracking.';
     }
 
-    // 8. Cryptographic Audit Recording (FDA 21 CFR Part 11 / EU MDR)
+    // 10. Conformal Prediction Bounds (Distribution-Free Statistical Coverage)
+    const conformal_bounds = computeConformalRiskInterval(p_fused, r, pulse_pressure, 0.95);
+
+    // 11. Multi-Omics Polygenic Risk Modality (Branch 4: f_G)
+    const genomic_assessment = evaluateGenomicModality({
+      snp_9p21_rs10757274: data.snp_9p21 ?? 1,
+      snp_lpa_rs10455872: data.snp_lpa ?? 0,
+      apoe_genotype: data.apoe_genotype || 'e3/e3',
+      family_history_premature_cad: data.family_history ?? false
+    });
+
+    // 12. Cryptographic Audit Recording (FDA 21 CFR Part 11 / EU MDR)
     const auditRecord = globalAuditStore.append(
       (data as any).patient_ref || 'CLINIC-PATIENT',
       (data as any).clinician_ref || 'ATTENDING-MD',
@@ -247,6 +264,8 @@ export async function POST(request: Request) {
         model_version: auditRecord.model_metadata.model_version,
         chain_sequence: auditRecord.sequence
       },
+      conformal_bounds,
+      genomic_assessment,
       predictions: {
         clinical_branch_probability: p_c,
         lifestyle_branch_probability: p_l,
