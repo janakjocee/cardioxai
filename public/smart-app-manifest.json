@@ -1,0 +1,20 @@
+{
+  "client_name": "CardioXAI Decision Support System",
+  "client_id": "cardioxai-cds-samd",
+  "client_uri": "https://cardioxai-umber.vercel.app",
+  "logo_uri": "https://cardioxai-umber.vercel.app/icon.png",
+  "redirect_uris": [
+    "https://cardioxai-umber.vercel.app/launch",
+    "http://localhost:3000/launch"
+  ],
+  "contacts": [
+    "sarjan.thapa@yorksj.ac.uk",
+    "janakjoshiedu@gmail.com"
+  ],
+  "smart_version": "1.0.0",
+  "fhir_version": "4.0.1",
+  "author": "Sarjan Bahadur Thapa (York St John University)",
+  "description": "Early-Stage Cardiovascular Disease Prediction using Late-Fusion Clinical & Lifestyle Data with Explainable Machine Learning",
+  "application_type": "web",
+  "intended_users": ["physician", "cardiologist", "nurse", "researcher"]
+}
