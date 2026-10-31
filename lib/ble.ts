@@ -294,3 +294,6 @@ export class WebBLEManager {
     this.updateState({ connected: false, deviceName: null, deviceId: null, servicesFound: [] });
   }
 }
+
+// Global shared singleton for application-wide Web Bluetooth state
+export const globalBLEManager = new WebBLEManager();

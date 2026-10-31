@@ -15,14 +15,14 @@ import {
   RefreshCw,
   Power
 } from 'lucide-react';
-import { WebBLEManager, BLEDeviceState, BLEHeartRateData, BLEBloodPressureData, isWebBluetoothSupported } from '@/lib/ble';
+import { WebBLEManager, BLEDeviceState, BLEHeartRateData, BLEBloodPressureData, isWebBluetoothSupported, globalBLEManager } from '@/lib/ble';
 
 interface BleConnectorProps {
   onLiveVitalsReceived?: (vitals: { sbp?: number; dbp?: number; hr?: number }) => void;
 }
 
 export function BleConnector({ onLiveVitalsReceived }: BleConnectorProps) {
-  const [manager] = useState(() => new WebBLEManager());
+  const manager = globalBLEManager;
   const [bleState, setBleState] = useState<BLEDeviceState>(manager.getState());
   const [supported, setSupported] = useState(true);
   const [connecting, setConnecting] = useState(false);

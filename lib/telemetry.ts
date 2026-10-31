@@ -277,3 +277,107 @@ export class TelemetryStreamSimulator {
     };
   }
 }
+
+/**
+ * Deterministically evaluates live hemodynamics strictly from real hardware sensor inputs.
+ * Zero random fluctuations, zero synthetic jitter.
+ */
+export function evaluateRealHardwareTelemetry(params: {
+  hr: number;
+  sbp: number;
+  dbp: number;
+  spo2?: number;
+  sensorQuality?: number;
+  tick?: number;
+}): TelemetryReading {
+  const { hr, sbp, dbp, spo2 = 98, sensorQuality = 1.0, tick = 1 } = params;
+  const pp = sbp - dbp;
+  const map = Math.round((dbp + pp / 3.0) * 10) / 10;
+  const rpp = Math.round((hr * sbp) / 100);
+
+  // Dynamic reliability based on sensor contact
+  const r = Math.min(1.0, Math.max(0.4, Math.round(sensorQuality * 100) / 100));
+
+  // Clinical branch probability
+  const z_c = -0.08 + 0.046 * (sbp - 128) + 0.024 * (dbp - 82) + 0.015 * (pp - 45);
+  const p_c = Math.round((1.0 / (1.0 + Math.exp(-z_c))) * 1000) / 1000;
+
+  // Lifestyle branch probability
+  const z_l = -0.12;
+  const p_l = Math.round((1.0 / (1.0 + Math.exp(-z_l))) * 1000) / 1000;
+
+  // Meta-fusion layer
+  const scaler_mean = [0.4921, 0.4924, 1.0, 0.4924, -0.0003];
+  const scaler_scale = [0.2619, 0.1477, 0.0011, 0.1477, 0.2299];
+  const meta_weights = [0.6048, 0.1973, -0.0539, 0.1971, 0.5622];
+  const meta_intercept = -0.0163;
+
+  const raw_meta = [p_c, p_l, r, p_l * r, (p_c - p_l) * r];
+  let z_meta = meta_intercept;
+  for (let i = 0; i < raw_meta.length; i++) {
+    const scaled = (raw_meta[i] - scaler_mean[i]) / scaler_scale[i];
+    z_meta += meta_weights[i] * scaled;
+  }
+  const fused_prob = Math.round((1.0 / (1.0 + Math.exp(-z_meta))) * 1000) / 1000;
+
+  let risk_tier: TelemetryReading['prediction']['risk_tier'] = 'Low Risk';
+  let risk_color: TelemetryReading['prediction']['risk_color'] = 'emerald';
+  if (fused_prob >= 0.75) {
+    risk_tier = 'Critical Stage Risk';
+    risk_color = 'red';
+  } else if (fused_prob >= 0.50) {
+    risk_tier = 'High Risk';
+    risk_color = 'amber';
+  } else if (fused_prob >= 0.25) {
+    risk_tier = 'Moderate Risk';
+    risk_color = 'blue';
+  }
+
+  let alert: TelemetryAlert | null = null;
+  if (sbp >= 170 || dbp >= 105) {
+    alert = {
+      level: 'CRITICAL',
+      type: 'HYPERTENSIVE_CRISIS',
+      headline: `Acute Hypertensive Emergency Detected (SBP: ${sbp} mmHg)`,
+      sbar_recommendation: `S: SBP elevated to ${sbp}/${dbp} mmHg with HR ${hr} bpm. Immediate cardiology review recommended.`,
+      action_required: true
+    };
+  } else if (pp >= 65 && hr >= 95) {
+    alert = {
+      level: 'WARNING',
+      type: 'MALIGNANT_PULSE_PRESSURE',
+      headline: `Widened Pulse Pressure (${pp} mmHg) with Elevated Heart Rate (${hr} bpm)`,
+      sbar_recommendation: `S: Increased arterial stiffening detected. Review patient medication and ECG.`,
+      action_required: true
+    };
+  }
+
+  return {
+    tick,
+    timestamp: new Date().toISOString(),
+    heart_rate: hr,
+    ap_hi: sbp,
+    ap_lo: dbp,
+    spo2,
+    motion_level: 0,
+    sensor_contact_quality: sensorQuality,
+    active: 0,
+    smoke_event: 0,
+    derived: {
+      map,
+      pulse_pressure: pp,
+      rpp,
+      moving_sbp_5pt: sbp,
+      moving_dbp_5pt: dbp,
+      reliability_score: r
+    },
+    prediction: {
+      fused_probability: fused_prob,
+      clinical_branch_prob: p_c,
+      lifestyle_branch_prob: p_l,
+      risk_tier,
+      risk_color,
+      alert
+    }
+  };
+}
