@@ -256,6 +256,13 @@ export async function POST(request: Request) {
       }
     );
 
+    const formattedConformal = {
+      ...conformal_bounds,
+      p_lower: conformal_bounds.lower_bound,
+      p_upper: conformal_bounds.upper_bound,
+      alert: conformal_bounds.certainty_tier === 'EPISTEMIC_AMBIGUITY' ? conformal_bounds.clinical_interpretation : null
+    };
+
     return NextResponse.json({
       audit_provenance: {
         record_id: auditRecord.record_id,
@@ -264,7 +271,9 @@ export async function POST(request: Request) {
         model_version: auditRecord.model_metadata.model_version,
         chain_sequence: auditRecord.sequence
       },
-      conformal_bounds,
+      conformal: formattedConformal,
+      conformal_bounds: formattedConformal,
+      genomics: genomic_assessment,
       genomic_assessment,
       predictions: {
         clinical_branch_probability: p_c,
