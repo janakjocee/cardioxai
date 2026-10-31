@@ -41,6 +41,22 @@ The entire framework is trained and validated on **authentic real-world datasets
 * Interactive counterfactual simulations providing exact percentage risk reductions for modifiable clinical targets.
 * Exportable, audit-stamped clinical consultation summary formatted for electronic health records.
 
+### 4. Novelty 4: Distribution-Free Conformal Risk Prediction (Uncertainty Quantification)
+* Guarantees exact finite-sample coverage at nominal confidence $(1 - \alpha = 0.95)$ using inductive split-conformal inference.
+* Dynamically inflates prediction set width $[P_{\text{lower}}, P_{\text{upper}}]$ under elevated epistemic ambiguity, severe sensor noise, or wide pulse pressure ($\text{PP} > 70\text{ mmHg}$).
+
+### 5. Novelty 5: Multi-Omics Polygenic Risk Modality ($f_G$ Branch 4)
+* Incorporates Genome-Wide Association Study (GWAS) effect sizes from CARDIoGRAMplusC4D and UK Biobank cohorts.
+* Evaluates non-modifiable inherited susceptibility across **9p21.3 (rs10757274)**, **LPA (rs10455872)**, and **APOE** isoforms independently of dynamic lifestyle.
+
+### 6. Novelty 6: Medical Internet-of-Things (IoMT) & SMART on FHIR Interoperability
+* **Web Bluetooth (BLE) Hardware Connector:** Direct browser-to-peripheral pairing with standard Bluetooth SIG medical profiles (GATT 0x180D Heart Rate, 0x1810 Blood Pressure, 0x180F Battery).
+* **SMART on FHIR EHR Launch Protocol:** Manifest and discovery endpoint (`/.well-known/smart-configuration`) compliant with Epic Systems and Cerner Millennium sandboxes.
+
+### 7. Novelty 7: Continuous Population Drift (PSI) & NHS DTAC Health Equity Auditing
+* Real-time Population Stability Index (PSI) tracking detecting demographic distribution shifts.
+* Automated demographic parity and four-fifths adverse impact ratio verification to prevent algorithmic bias across biological sex and age strata.
+
 ---
 
 ## 📊 Experimental Benchmark Matrix (Configurations B0 – B7)
@@ -204,11 +220,13 @@ npm run start
 
 | Method | Endpoint | Protocol / Standard | Description |
 |---|---|---|---|
-| `POST` | `/api/predict` | JSON / REST | Standard late-fusion risk inference with automatic cryptographic audit signing |
+| `POST` | `/api/predict` | JSON / REST | Standard late-fusion risk inference with conformal bounds and cryptographic audit signing |
 | `GET` | `/api/stream` | Server-Sent Events (SSE) / REST | Real-time continuous ambulatory telemetry stream at 1.0 Hz |
 | `POST` | `/api/fhir` | HL7 FHIR Release 4 | Bidirectional EHR FHIR Bundle parsing and standard RiskAssessment generation |
 | `GET` | `/api/audit` | Cryptographic Ledger | Retrieve tamper-proof audit trail and verify SHA-256 chain integrity |
+| `GET` | `/api/drift` | Population Stability Index | Continuous covariate drift analysis (PSI) and demographic fairness tracking |
 | `GET` | `/api/benchmarks` | Static JSON Serialization | Serves precomputed 70k benchmark matrix (B0 through B7) |
+| `GET` | `/.well-known/smart-configuration` | SMART on FHIR Discovery | OAuth2 authorization, token, and capability endpoints for EHR app launches |
 
 ---
 
