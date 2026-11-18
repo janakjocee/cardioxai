@@ -1,108 +1,355 @@
 {
   "metadata": {
-    "title": "Early-Stage Cardiovascular Disease Prediction Using a Late-Fusion Integration of Clinical and Lifestyle Data with Explainable Machine Learning System",
+    "title": "CardioXAI Late-Fusion Model Artifacts",
     "author": "Sarjan Bahadur Thapa",
     "student_id": "260043443",
-    "institution": "York St John University, Department of Data Science",
+    "institution": "York St John University",
     "dataset_cohort_size": 40000,
+    "train_size": 24000,
+    "calibration_size": 8000,
     "test_cohort_size": 8000,
-    "data_provenance": "Authentic Kaggle CVD (70k records) + CDC BRFSS Diabetes (70k records) + UCI Cleveland",
+    "data_provenance": "Authentic Kaggle CVD (70k records) + CDC BRFSS Diabetes (70k records)",
     "cleaning_audit": {
       "total_raw_records": 70000,
       "valid_records_retained": 68610,
       "outliers_filtered": 1390,
       "retention_percentage": 98.01
     },
-    "timestamp": "2026-10-28"
+    "export_version": "2.0",
+    "timestamp": "2026-11-07"
+  },
+  "clinical_branch": {
+    "features": [
+      "age_years",
+      "gender",
+      "height",
+      "weight",
+      "bmi",
+      "ap_hi",
+      "ap_lo",
+      "pulse_pressure",
+      "map",
+      "cholesterol",
+      "gluc"
+    ],
+    "coefficients": [
+      0.333627,
+      -0.040381,
+      -0.036919,
+      0.185209,
+      -0.016103,
+      0.337368,
+      0.197053,
+      0.324049,
+      0.286036,
+      0.336179,
+      -0.064489
+    ],
+    "intercept": 0.020515,
+    "scaler_mean": [
+      53.262475,
+      1.342792,
+      164.390292,
+      74.211815,
+      27.50172,
+      126.750625,
+      81.352167,
+      45.398458,
+      96.484007,
+      1.363417,
+      1.226583
+    ],
+    "scaler_scale": [
+      6.751158,
+      0.474643,
+      7.909823,
+      14.262243,
+      5.253607,
+      16.702296,
+      9.425845,
+      11.656955,
+      11.047087,
+      0.680266,
+      0.575248
+    ]
+  },
+  "lifestyle_branch": {
+    "features": [
+      "age_years",
+      "gender",
+      "smoke",
+      "alco",
+      "active",
+      "diet_quality"
+    ],
+    "coefficients": [
+      0.472325,
+      0.03861,
+      -0.167607,
+      -0.085494,
+      0.160522,
+      -0.403564
+    ],
+    "intercept": -0.037287,
+    "scaler_mean": [
+      53.262475,
+      1.342792,
+      0.086542,
+      0.054083,
+      0.803292,
+      3.059958
+    ],
+    "scaler_scale": [
+      6.751158,
+      0.474643,
+      0.281162,
+      0.226182,
+      0.39751,
+      0.707717
+    ]
+  },
+  "fusion_model_parameters": {
+    "coefficients": [
+      0.573889,
+      0.180685,
+      -0.049636,
+      0.180464,
+      0.562735
+    ],
+    "intercept": -0.001704,
+    "feature_names": [
+      "p_clinical",
+      "p_lifestyle",
+      "reliability_r",
+      "lifestyle_x_r",
+      "diff_x_r"
+    ],
+    "scaler_mean": [
+      0.492339,
+      0.492256,
+      0.999983,
+      0.492248,
+      7.5e-05
+    ],
+    "scaler_scale": [
+      0.244103,
+      0.135186,
+      0.001155,
+      0.135183,
+      0.205488
+    ]
+  },
+  "conformal_calibration": {
+    "alpha_005": {
+      "coverage": 0.95,
+      "quantile": 0.790939,
+      "calibration_set_size": 8000
+    },
+    "alpha_010": {
+      "coverage": 0.9,
+      "quantile": 0.709286,
+      "calibration_set_size": 8000
+    }
+  },
+  "baseline_distribution": {
+    "mean_risk": 0.4922,
+    "std_risk": 0.2528,
+    "decile_proportions": [
+      0.0064,
+      0.1214,
+      0.1667,
+      0.1555,
+      0.1138,
+      0.0757,
+      0.0756,
+      0.1014,
+      0.1423,
+      0.0412
+    ],
+    "cohort_size": 24000
+  },
+  "global_feature_importances": {
+    "clinical": [
+      {
+        "feature": "age_years",
+        "mean_abs_importance": 0.278247,
+        "coefficient": 0.333627,
+        "scaler_mean": 53.2625,
+        "scaler_scale": 6.7512
+      },
+      {
+        "feature": "cholesterol",
+        "mean_abs_importance": 0.270217,
+        "coefficient": 0.336179,
+        "scaler_mean": 1.3634,
+        "scaler_scale": 0.6803
+      },
+      {
+        "feature": "ap_hi",
+        "mean_abs_importance": 0.262133,
+        "coefficient": 0.337368,
+        "scaler_mean": 126.7506,
+        "scaler_scale": 16.7023
+      },
+      {
+        "feature": "pulse_pressure",
+        "mean_abs_importance": 0.246773,
+        "coefficient": 0.324049,
+        "scaler_mean": 45.3985,
+        "scaler_scale": 11.657
+      },
+      {
+        "feature": "map",
+        "mean_abs_importance": 0.215174,
+        "coefficient": 0.286036,
+        "scaler_mean": 96.484,
+        "scaler_scale": 11.0471
+      },
+      {
+        "feature": "weight",
+        "mean_abs_importance": 0.142656,
+        "coefficient": 0.185209,
+        "scaler_mean": 74.2118,
+        "scaler_scale": 14.2622
+      },
+      {
+        "feature": "ap_lo",
+        "mean_abs_importance": 0.139762,
+        "coefficient": 0.197053,
+        "scaler_mean": 81.3522,
+        "scaler_scale": 9.4258
+      },
+      {
+        "feature": "gluc",
+        "mean_abs_importance": 0.043246,
+        "coefficient": -0.064489,
+        "scaler_mean": 1.2266,
+        "scaler_scale": 0.5752
+      },
+      {
+        "feature": "gender",
+        "mean_abs_importance": 0.038333,
+        "coefficient": -0.040381,
+        "scaler_mean": 1.3428,
+        "scaler_scale": 0.4746
+      },
+      {
+        "feature": "height",
+        "mean_abs_importance": 0.029232,
+        "coefficient": -0.036919,
+        "scaler_mean": 164.3903,
+        "scaler_scale": 7.9098
+      },
+      {
+        "feature": "bmi",
+        "mean_abs_importance": 0.012297,
+        "coefficient": -0.016103,
+        "scaler_mean": 27.5017,
+        "scaler_scale": 5.2536
+      }
+    ],
+    "lifestyle": [
+      {
+        "feature": "age_years",
+        "mean_abs_importance": 0.393922,
+        "coefficient": 0.472325,
+        "scaler_mean": 53.2625,
+        "scaler_scale": 6.7512
+      },
+      {
+        "feature": "diet_quality",
+        "mean_abs_importance": 0.291295,
+        "coefficient": -0.403564,
+        "scaler_mean": 3.06,
+        "scaler_scale": 0.7077
+      },
+      {
+        "feature": "active",
+        "mean_abs_importance": 0.127618,
+        "coefficient": 0.160522,
+        "scaler_mean": 0.8033,
+        "scaler_scale": 0.3975
+      },
+      {
+        "feature": "smoke",
+        "mean_abs_importance": 0.09425,
+        "coefficient": -0.167607,
+        "scaler_mean": 0.0865,
+        "scaler_scale": 0.2812
+      },
+      {
+        "feature": "alco",
+        "mean_abs_importance": 0.038675,
+        "coefficient": -0.085494,
+        "scaler_mean": 0.0541,
+        "scaler_scale": 0.2262
+      },
+      {
+        "feature": "gender",
+        "mean_abs_importance": 0.036652,
+        "coefficient": 0.03861,
+        "scaler_mean": 1.3428,
+        "scaler_scale": 0.4746
+      }
+    ],
+    "base_value_clinical": 0.5051,
+    "base_value_fused": 0.4922
   },
   "benchmarks": {
     "B0_Framingham": {
       "name": "B0: Framingham Clinical Baseline",
-      "type": "Heuristic Risk Instrument",
-      "accuracy": 0.6601,
-      "precision": 0.6145,
-      "recall": 0.8306,
-      "specificity": 0.4948,
-      "f1_score": 0.7064,
-      "roc_auc": 0.7238,
-      "brier_score": 0.2241
+      "type": "Heuristic",
+      "accuracy": 0.6528,
+      "precision": 0.6085,
+      "recall": 0.8261,
+      "specificity": 0.4847,
+      "f1_score": 0.7008,
+      "roc_auc": 0.7215,
+      "brier_score": 0.2256
     },
     "B1_Clinical_Only": {
-      "name": "B1: Clinical-Only Model",
-      "type": "Clinical Modality Only",
-      "accuracy": 0.7348,
-      "precision": 0.7561,
-      "recall": 0.6808,
-      "specificity": 0.7871,
-      "f1_score": 0.7165,
-      "roc_auc": 0.7963,
-      "brier_score": 0.1829
+      "name": "B1: Clinical-Only Model (RF)",
+      "type": "Clinical Only",
+      "accuracy": 0.7291,
+      "precision": 0.7512,
+      "recall": 0.6724,
+      "specificity": 0.7841,
+      "f1_score": 0.7096,
+      "roc_auc": 0.7924,
+      "brier_score": 0.1848
     },
     "B2_Early_Fusion": {
-      "name": "B2: Early Fusion (Concatenation)",
+      "name": "B2: Early Fusion (RF)",
       "type": "Naive Integration",
-      "accuracy": 0.7371,
-      "precision": 0.7593,
-      "recall": 0.6823,
-      "specificity": 0.7903,
-      "f1_score": 0.7187,
-      "roc_auc": 0.797,
-      "brier_score": 0.1827
+      "accuracy": 0.7281,
+      "precision": 0.7496,
+      "recall": 0.6722,
+      "specificity": 0.7824,
+      "f1_score": 0.7088,
+      "roc_auc": 0.7941,
+      "brier_score": 0.1841
     },
     "B3_Proposed_Late_Fusion": {
-      "name": "B3: Proposed Late Fusion (Reliability-Weighted)",
-      "type": "Proposed Novelty Architecture",
-      "accuracy": 0.7362,
-      "precision": 0.7523,
-      "recall": 0.692,
-      "specificity": 0.7792,
-      "f1_score": 0.7209,
-      "roc_auc": 0.7973,
-      "brier_score": 0.1827,
+      "name": "B3: Proposed Late Fusion (LR + Reliability)",
+      "type": "Proposed Architecture",
+      "accuracy": 0.7226,
+      "precision": 0.7465,
+      "recall": 0.661,
+      "specificity": 0.7824,
+      "f1_score": 0.7011,
+      "roc_auc": 0.7846,
+      "brier_score": 0.1887,
       "meta_weights": {
-        "p_clinical": 0.6048,
-        "p_lifestyle": 0.1973,
-        "reliability_r": -0.0539,
-        "lifestyle_x_r": 0.1971,
-        "diff_x_r": 0.5622
+        "p_clinical": 0.5739,
+        "p_lifestyle": 0.1807,
+        "reliability_r": -0.0496,
+        "lifestyle_x_r": 0.1805,
+        "diff_x_r": 0.5627
       }
     },
-    "B4_Late_Fusion_No_Reliability": {
-      "name": "B4: Late Fusion (No Reliability Weighting)",
-      "type": "Ablation",
-      "accuracy": 0.7361,
-      "precision": 0.7521,
-      "recall": 0.692,
-      "specificity": 0.7789,
-      "f1_score": 0.7208,
-      "roc_auc": 0.7973,
-      "brier_score": 0.1827
-    },
-    "B5_Late_Fusion_No_Interactions": {
-      "name": "B5: Late Fusion (No Interaction Terms)",
-      "type": "Ablation",
-      "accuracy": 0.7355,
-      "precision": 0.7528,
-      "recall": 0.6889,
-      "specificity": 0.7806,
-      "f1_score": 0.7194,
-      "roc_auc": 0.7949,
-      "brier_score": 0.1836
-    },
-    "B6_Imputation_Sensitivity": {
-      "name": "B6: Mode & Plausibility Handling (S1)",
-      "type": "Imputation Benchmark",
-      "accuracy": 0.7322,
-      "precision": 0.7493,
-      "recall": 0.687,
-      "specificity": 0.7772,
-      "f1_score": 0.7169,
-      "roc_auc": 0.7943,
-      "brier_score": 0.1847
-    },
     "B7_Diabetes_Transferability": {
-      "name": "B7: Secondary Target Transferability (CDC BRFSS Diabetes)",
-      "type": "Transferability Test (Real Cohort)",
+      "name": "B7: CDC BRFSS Diabetes Transfer",
+      "type": "Transferability",
       "accuracy": 0.7504,
       "precision": 0.73,
       "recall": 0.7954,
@@ -112,437 +359,180 @@
       "brier_score": 0.1709
     }
   },
-  "algo_comparison": {
-    "LR": {
-      "accuracy": 0.7274,
-      "precision": 0.7467,
-      "recall": 0.6752,
-      "specificity": 0.7779,
-      "f1_score": 0.7092,
-      "roc_auc": 0.7888,
-      "brier_score": 0.1866
-    },
-    "DT": {
-      "accuracy": 0.7306,
-      "precision": 0.7389,
-      "recall": 0.7001,
-      "specificity": 0.7602,
-      "f1_score": 0.719,
-      "roc_auc": 0.7885,
-      "brier_score": 0.1855
-    },
-    "RF": {
-      "accuracy": 0.7362,
-      "precision": 0.7523,
-      "recall": 0.692,
-      "specificity": 0.7792,
-      "f1_score": 0.7209,
-      "roc_auc": 0.7973,
-      "brier_score": 0.1827
-    },
-    "SVM": {
-      "accuracy": 0.7265,
-      "precision": 0.741,
-      "recall": 0.6831,
-      "specificity": 0.7686,
-      "f1_score": 0.7109,
-      "roc_auc": 0.7872,
-      "brier_score": 0.1876
-    }
-  },
   "delong_tests": {
-    "confirmatory_b1_vs_b2": {
-      "auc_model_a": 0.7963,
-      "auc_model_b": 0.797,
-      "auc_difference": 0.0006,
-      "z_statistic": 0.105,
-      "p_value": 0.916301,
-      "statistically_significant": false
-    },
     "architecture_b2_vs_b3": {
-      "auc_model_a": 0.797,
-      "auc_model_b": 0.7973,
-      "auc_difference": 0.0003,
-      "z_statistic": 0.051,
-      "p_value": 0.9591,
+      "auc_model_a": 0.7941,
+      "auc_model_b": 0.7846,
+      "auc_difference": -0.0095,
+      "z_statistic": -1.521,
+      "p_value": 0.128291,
       "statistically_significant": false
     }
   },
   "confidence_intervals_b3": {
     "roc_auc_ci": [
-      0.7863,
-      0.8068
+      0.774,
+      0.7955
     ],
     "accuracy_ci": [
-      0.7262,
-      0.7457
+      0.713,
+      0.7335
     ],
     "recall_ci": [
-      0.6759,
-      0.7067
+      0.6451,
+      0.677
     ]
   },
-  "global_feature_importances": [
-    {
-      "feature": "ap_hi",
-      "mean_abs_importance": 0.1388
-    },
-    {
-      "feature": "map",
-      "mean_abs_importance": 0.064
-    },
-    {
-      "feature": "age_x_ap_hi",
-      "mean_abs_importance": 0.0635
-    },
-    {
-      "feature": "cholesterol",
-      "mean_abs_importance": 0.0568
-    },
-    {
-      "feature": "ap_hi_x_active",
-      "mean_abs_importance": 0.0364
-    },
-    {
-      "feature": "age_years",
-      "mean_abs_importance": 0.0305
-    },
-    {
-      "feature": "ap_lo",
-      "mean_abs_importance": 0.0305
-    },
-    {
-      "feature": "bmi",
-      "mean_abs_importance": 0.0218
-    },
-    {
-      "feature": "weight",
-      "mean_abs_importance": 0.0179
-    },
-    {
-      "feature": "bmi_x_active",
-      "mean_abs_importance": 0.0141
-    },
-    {
-      "feature": "pulse_pressure",
-      "mean_abs_importance": 0.0135
-    },
-    {
-      "feature": "active",
-      "mean_abs_importance": 0.0056
-    },
-    {
-      "feature": "height",
-      "mean_abs_importance": 0.0026
-    },
-    {
-      "feature": "smoke",
-      "mean_abs_importance": 0.0024
-    },
-    {
-      "feature": "diet_quality",
-      "mean_abs_importance": 0.0019
-    },
-    {
-      "feature": "gluc",
-      "mean_abs_importance": 0.0011
-    },
-    {
-      "feature": "gender",
-      "mean_abs_importance": 0.0009
-    },
-    {
-      "feature": "alco",
-      "mean_abs_importance": 0.0009
-    },
-    {
-      "feature": "ap_hi_x_smoke",
-      "mean_abs_importance": 0.0006
-    },
-    {
-      "feature": "alco_x_gluc",
-      "mean_abs_importance": 0.0
+  "fairness_audit": {
+    "pooled_recall": 0.661,
+    "disparities_detected": true,
+    "subgroups": {
+      "Sex: Female": {
+        "sample_size": 5177,
+        "accuracy": 0.7226,
+        "precision": 0.7464,
+        "recall": 0.6596,
+        "specificity": 0.7835,
+        "f1_score": 0.7003,
+        "roc_auc": 0.7825,
+        "brier_score": 0.1896,
+        "delta_recall_vs_pooled": -0.0014,
+        "parity_flag": false
+      },
+      "Sex: Male": {
+        "sample_size": 2823,
+        "accuracy": 0.7226,
+        "precision": 0.7466,
+        "recall": 0.6636,
+        "specificity": 0.7803,
+        "f1_score": 0.7026,
+        "roc_auc": 0.7889,
+        "brier_score": 0.1869,
+        "delta_recall_vs_pooled": 0.0026,
+        "parity_flag": false
+      },
+      "Age: <40 years": {
+        "sample_size": 180,
+        "accuracy": 0.8667,
+        "precision": 0.7,
+        "recall": 0.4375,
+        "specificity": 0.9595,
+        "f1_score": 0.5385,
+        "roc_auc": 0.7768,
+        "brier_score": 0.1166,
+        "delta_recall_vs_pooled": -0.2235,
+        "parity_flag": true
+      },
+      "Age: 40-49 years": {
+        "sample_size": 2244,
+        "accuracy": 0.7772,
+        "precision": 0.8212,
+        "recall": 0.5054,
+        "specificity": 0.9358,
+        "f1_score": 0.6257,
+        "roc_auc": 0.8001,
+        "brier_score": 0.1658,
+        "delta_recall_vs_pooled": -0.1556,
+        "parity_flag": true
+      },
+      "Age: 50-59 years": {
+        "sample_size": 4030,
+        "accuracy": 0.6945,
+        "precision": 0.7191,
+        "recall": 0.6571,
+        "specificity": 0.7334,
+        "f1_score": 0.6867,
+        "roc_auc": 0.7497,
+        "brier_score": 0.2026,
+        "delta_recall_vs_pooled": -0.0039,
+        "parity_flag": false
+      },
+      "Age: 60+ years": {
+        "sample_size": 1546,
+        "accuracy": 0.6999,
+        "precision": 0.7597,
+        "recall": 0.8012,
+        "specificity": 0.5,
+        "f1_score": 0.7799,
+        "roc_auc": 0.7227,
+        "brier_score": 0.1939,
+        "delta_recall_vs_pooled": 0.1402,
+        "parity_flag": true
+      }
     }
-  ],
+  },
   "sample_patient_xai": {
     "shap": {
-      "predicted_risk": 0.2415,
-      "base_value": 0.465,
+      "predicted_risk": 0.713,
+      "base_value": 0.4922,
       "attributions": [
         {
+          "feature": "pulse_pressure",
+          "patient_value": 60.0,
+          "shap_value": 0.405905,
+          "impact": "Increases Risk"
+        },
+        {
           "feature": "ap_hi",
-          "patient_value": 110.0,
-          "shap_value": -0.075,
-          "impact": "Decreases Risk"
-        },
-        {
-          "feature": "map",
-          "patient_value": 83.33,
-          "shap_value": -0.0346,
-          "impact": "Decreases Risk"
-        },
-        {
-          "feature": "age_x_ap_hi",
-          "patient_value": 0.95,
-          "shap_value": -0.0343,
-          "impact": "Decreases Risk"
+          "patient_value": 140.0,
+          "shap_value": 0.267623,
+          "impact": "Increases Risk"
         },
         {
           "feature": "cholesterol",
           "patient_value": 1.0,
-          "shap_value": -0.0307,
-          "impact": "Decreases Risk"
-        },
-        {
-          "feature": "ap_hi_x_active",
-          "patient_value": 110.0,
-          "shap_value": -0.0197,
+          "shap_value": -0.179596,
           "impact": "Decreases Risk"
         },
         {
           "feature": "age_years",
-          "patient_value": 52.0,
-          "shap_value": -0.0165,
-          "impact": "Decreases Risk"
+          "patient_value": 55.4,
+          "shap_value": 0.105632,
+          "impact": "Increases Risk"
         },
         {
-          "feature": "ap_lo",
-          "patient_value": 70.0,
-          "shap_value": -0.0165,
-          "impact": "Decreases Risk"
-        },
-        {
-          "feature": "bmi",
-          "patient_value": 30.86,
-          "shap_value": 0.0118,
+          "feature": "map",
+          "patient_value": 100.0,
+          "shap_value": 0.091038,
           "impact": "Increases Risk"
         },
         {
           "feature": "weight",
-          "patient_value": 81.0,
-          "shap_value": 0.0097,
-          "impact": "Increases Risk"
-        },
-        {
-          "feature": "bmi_x_active",
-          "patient_value": 0.0,
-          "shap_value": -0.0076,
-          "impact": "Decreases Risk"
-        },
-        {
-          "feature": "pulse_pressure",
-          "patient_value": 40.0,
-          "shap_value": -0.0073,
-          "impact": "Decreases Risk"
-        },
-        {
-          "feature": "active",
-          "patient_value": 1.0,
-          "shap_value": -0.003,
+          "patient_value": 68.0,
+          "shap_value": -0.080667,
           "impact": "Decreases Risk"
         },
         {
           "feature": "height",
-          "patient_value": 162.0,
-          "shap_value": -0.0014,
-          "impact": "Decreases Risk"
-        },
-        {
-          "feature": "smoke",
-          "patient_value": 0.0,
-          "shap_value": 0.0013,
-          "impact": "Increases Risk"
-        },
-        {
-          "feature": "diet_quality",
-          "patient_value": 3.0,
-          "shap_value": -0.001,
-          "impact": "Decreases Risk"
-        },
-        {
-          "feature": "gluc",
-          "patient_value": 1.0,
-          "shap_value": 0.0006,
+          "patient_value": 148.0,
+          "shap_value": 0.076502,
           "impact": "Increases Risk"
         },
         {
           "feature": "gender",
           "patient_value": 1.0,
-          "shap_value": 0.0005,
+          "shap_value": 0.029163,
           "impact": "Increases Risk"
         },
         {
-          "feature": "alco",
-          "patient_value": 0.0,
-          "shap_value": 0.0005,
-          "impact": "Increases Risk"
-        },
-        {
-          "feature": "ap_hi_x_smoke",
-          "patient_value": 0.0,
-          "shap_value": -0.0003,
+          "feature": "ap_lo",
+          "patient_value": 80.0,
+          "shap_value": -0.028268,
           "impact": "Decreases Risk"
         },
         {
-          "feature": "alco_x_gluc",
-          "patient_value": 0.0,
-          "shap_value": 0.0,
+          "feature": "gluc",
+          "patient_value": 1.0,
+          "shap_value": 0.025401,
           "impact": "Increases Risk"
+        },
+        {
+          "feature": "bmi",
+          "patient_value": 31.04,
+          "shap_value": -0.010845,
+          "impact": "Decreases Risk"
         }
       ]
-    },
-    "lime": {
-      "local_r2": 0.168,
-      "explanations": [
-        {
-          "feature": "age_x_ap_hi",
-          "patient_value": 0.95,
-          "lime_weight": 0.0057,
-          "is_modifiable": false,
-          "clinical_guidance": "Maintain regular monitoring during follow-up consultations."
-        },
-        {
-          "feature": "age_years",
-          "patient_value": 52.0,
-          "lime_weight": 0.0052,
-          "is_modifiable": false,
-          "clinical_guidance": "Maintain regular monitoring during follow-up consultations."
-        },
-        {
-          "feature": "ap_hi_x_active",
-          "patient_value": 110.0,
-          "lime_weight": 0.0039,
-          "is_modifiable": false,
-          "clinical_guidance": "Maintain regular monitoring during follow-up consultations."
-        },
-        {
-          "feature": "diet_quality",
-          "patient_value": 3.0,
-          "lime_weight": 0.0027,
-          "is_modifiable": true,
-          "clinical_guidance": "Maintain regular monitoring during follow-up consultations."
-        },
-        {
-          "feature": "weight",
-          "patient_value": 81.0,
-          "lime_weight": 0.0023,
-          "is_modifiable": true,
-          "clinical_guidance": "Maintain regular monitoring during follow-up consultations."
-        }
-      ]
-    },
-    "agreement": {
-      "top_k": 5,
-      "shared_features": [
-        "ap_hi_x_active",
-        "age_x_ap_hi"
-      ],
-      "jaccard_overlap": 0.25,
-      "sign_agreement_rate": 0.0,
-      "spearman_rank_correlation": -0.213,
-      "clinical_trust_verdict": "Moderate Concordance"
     }
-  },
-  "fairness_audit": {
-    "pooled_recall": 0.692,
-    "disparities_detected": true,
-    "subgroups": {
-      "Sex: Female": {
-        "sample_size": 5145,
-        "accuracy": 0.7361,
-        "precision": 0.7472,
-        "recall": 0.6871,
-        "specificity": 0.7819,
-        "f1_score": 0.7159,
-        "roc_auc": 0.8015,
-        "brier_score": 0.181,
-        "delta_recall_vs_pooled": -0.0049,
-        "parity_flag": false
-      },
-      "Sex: Male": {
-        "sample_size": 2855,
-        "accuracy": 0.7366,
-        "precision": 0.7613,
-        "recall": 0.7003,
-        "specificity": 0.774,
-        "f1_score": 0.7295,
-        "roc_auc": 0.7892,
-        "brier_score": 0.1858,
-        "delta_recall_vs_pooled": 0.0083,
-        "parity_flag": false
-      },
-      "Age: <40 years": {
-        "sample_size": 183,
-        "accuracy": 0.8525,
-        "precision": 0.7586,
-        "recall": 0.5238,
-        "specificity": 0.9504,
-        "f1_score": 0.6197,
-        "roc_auc": 0.7957,
-        "brier_score": 0.1236,
-        "delta_recall_vs_pooled": -0.1682,
-        "parity_flag": true
-      },
-      "Age: 40-49 years": {
-        "sample_size": 2237,
-        "accuracy": 0.7975,
-        "precision": 0.8079,
-        "recall": 0.6052,
-        "specificity": 0.9133,
-        "f1_score": 0.692,
-        "roc_auc": 0.8266,
-        "brier_score": 0.1516,
-        "delta_recall_vs_pooled": -0.0868,
-        "parity_flag": true
-      },
-      "Age: 50-59 years": {
-        "sample_size": 4047,
-        "accuracy": 0.7082,
-        "precision": 0.748,
-        "recall": 0.6363,
-        "specificity": 0.7814,
-        "f1_score": 0.6876,
-        "roc_auc": 0.76,
-        "brier_score": 0.1973,
-        "delta_recall_vs_pooled": -0.0557,
-        "parity_flag": true
-      },
-      "Age: 60+ years": {
-        "sample_size": 1533,
-        "accuracy": 0.7071,
-        "precision": 0.7298,
-        "recall": 0.8834,
-        "specificity": 0.3647,
-        "f1_score": 0.7993,
-        "roc_auc": 0.7083,
-        "brier_score": 0.1965,
-        "delta_recall_vs_pooled": 0.1914,
-        "parity_flag": true
-      }
-    }
-  },
-  "fusion_model_parameters": {
-    "meta_weights": {
-      "p_clinical": 0.6048,
-      "p_lifestyle": 0.1973,
-      "reliability_r": -0.0539,
-      "lifestyle_x_r": 0.1971,
-      "diff_x_r": 0.5622
-    },
-    "meta_intercept": -0.0163,
-    "scaler_mean": [
-      0.4921,
-      0.4924,
-      1.0,
-      0.4924,
-      -0.0003
-    ],
-    "scaler_scale": [
-      0.2619,
-      0.1477,
-      0.0011,
-      0.1477,
-      0.2299
-    ]
   }
 }
