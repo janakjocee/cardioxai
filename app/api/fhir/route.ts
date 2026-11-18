@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { parseFHIRBundleToPatientInput, createFHIRRiskAssessment, generateSampleFHIRBundle, FHIRBundle } from '@/lib/fhir';
+import { POST as predictHandler } from '@/app/api/predict/route';
 
 export async function GET() {
-  // Returns a realistic sample FHIR R4 Bundle for EHR integration testing
   const sampleBundle = generateSampleFHIRBundle();
   return NextResponse.json({
     message: 'CardioXAI HL7 FHIR R4 Clinical Interoperability Endpoint',
@@ -27,27 +27,25 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body: FHIRBundle = await request.json();
-    
-    // Parse FHIR bundle into CardioXAI patient input
+
+    // Parse FHIR bundle into CardioXAI patient input format
     const { patient, provenance } = parseFHIRBundleToPatientInput(body);
 
-    // Call internal predict logic
-    const host = request.headers.get('host') || 'localhost:3000';
-    const protocol = host.includes('localhost') ? 'http' : 'https';
-    
-    const predictRes = await fetch(`${protocol}://${host}/api/predict`, {
+    // Call predict handler directly instead of self-fetching via HTTP
+    const internalRequest = new Request('http://internal/api/predict', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(patient)
     });
 
-    if (!predictRes.ok) {
-      throw new Error(`Prediction engine responded with status: ${predictRes.status}`);
-    }
-
+    const predictRes = await predictHandler(internalRequest);
     const predictionData = await predictRes.json();
 
-    // Generate standard FHIR RiskAssessment
+    if (predictionData.error) {
+      throw new Error(predictionData.error);
+    }
+
+    // Generate standard FHIR R4 RiskAssessment resource
     const fhirRiskAssessment = createFHIRRiskAssessment(
       provenance.patient_id,
       predictionData.predictions,
@@ -62,12 +60,13 @@ export async function POST(request: Request) {
       fhir_risk_assessment: fhirRiskAssessment,
       cardioxai_result: predictionData
     });
-  } catch (err: any) {
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
     return NextResponse.json(
       {
         success: false,
         error: 'Failed to process FHIR R4 Bundle',
-        details: err?.message || String(err)
+        details: message
       },
       { status: 400 }
     );

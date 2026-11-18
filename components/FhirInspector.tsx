@@ -18,13 +18,16 @@ export function FhirInspector() {
   const [fhirInput, setFhirInput] = useState<string>(
     JSON.stringify(generateSampleFHIRBundle(), null, 2)
   );
-  const [responseOutput, setResponseOutput] = useState<any | null>(null);
+  const [responseOutput, setResponseOutput] = useState<Record<string, unknown> | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleSendFHIR = async () => {
     try {
       setLoading(true);
+      setErrorMsg(null);
       const parsed = JSON.parse(fhirInput);
       const res = await fetch('/api/fhir', {
         method: 'POST',
@@ -32,9 +35,13 @@ export function FhirInspector() {
         body: JSON.stringify(parsed)
       });
       const data = await res.json();
+      if (!res.ok || data.error) {
+        setErrorMsg(data.details || data.error || `Request failed (${res.status})`);
+      }
       setResponseOutput(data);
-    } catch (err: any) {
-      alert(`Invalid JSON or request failed: ${err.message}`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setErrorMsg(`Invalid JSON or request failed: ${message}`);
     } finally {
       setLoading(false);
     }

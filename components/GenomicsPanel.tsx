@@ -50,9 +50,12 @@ export function GenomicsPanel({ onGenomicProbChange }: GenomicsPanelProps) {
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-teal-100 text-teal-800 border border-teal-200">
                 GWAS PRS Engine
               </span>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                Research Preview
+              </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Evaluating inherited susceptibility across 9p21.3 (rs10757274), LPA (rs10455872), and APOE alleles
+              Simplified 3-SNP polygenic risk calculator — production PRS requires validated GWAS catalog with 100k+ variants
             </p>
           </div>
         </div>

@@ -18,7 +18,7 @@ import { createMockSMARTSession, SMARTTokenResponse } from '@/lib/smart_fhir';
 
 export function SmartFhirLauncher() {
   const [selectedEhr, setSelectedEhr] = useState<'Epic Systems' | 'Cerner Millennium' | 'NHS Digital'>('Epic Systems');
-  const [session, setSession] = useState<any | null>(null);
+  const [session, setSession] = useState<Record<string, unknown> | null>(null);
   const [isAuthorizing, setIsAuthorizing] = useState(false);
 
   const handleSimulateEhrLaunch = () => {
@@ -44,9 +44,12 @@ export function SmartFhirLauncher() {
               <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 border border-purple-200">
                 HL7 SMART v2.0
               </span>
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-200">
+                Demo Mode
+              </span>
             </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Launch directly inside Epic Systems (MyChart/Hyperspace) and Cerner Millennium (PowerChart)
+              Simulated EHR context handoff — production OAuth requires EHR vendor registration (Epic App Orchard / Cerner Open)
             </p>
           </div>
         </div>
@@ -118,11 +121,15 @@ export function SmartFhirLauncher() {
           <div className="flex items-center justify-between text-xs">
             <span className="font-bold text-emerald-900 flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-              Authenticated SMART EHR Context Established
+              Simulated EHR Context (Demo) Established
             </span>
             <span className="font-mono text-emerald-700 bg-emerald-100/70 px-2.5 py-0.5 rounded-full">
-              OAuth2 Bearer Token Active
+              Simulated Bearer Token (Demo)
             </span>
+          </div>
+
+          <div className="p-2.5 rounded-lg bg-amber-50 border border-amber-200 text-[11px] text-amber-800">
+            <strong>Demo Mode:</strong> This session uses simulated EHR data. In production, real OAuth 2.0 PKCE flows connect to registered EHR vendors (Epic App Orchard, Cerner Open, NHS Digital).
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
