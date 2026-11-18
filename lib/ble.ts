@@ -60,6 +60,30 @@ export function isWebBluetoothSupported(): boolean {
 }
 
 /**
+ * Parses IEEE-11073 SFLOAT (16-bit float) from a DataView.
+ * SFLOAT: 4-bit exponent (signed) + 12-bit mantissa (signed).
+ * Used by Bluetooth Health Device Profile for blood pressure, temperature, etc.
+ */
+function parseSFLOAT(dataView: DataView, offset: number): number {
+  const raw = dataView.getUint16(offset, true);
+  // Special values per IEEE-11073-20601
+  if (raw === 0x07FF) return NaN;  // NaN
+  if (raw === 0x0800) return NaN;  // NRes (not at this resolution)
+  if (raw === 0x07FE) return Infinity;  // +INFINITY
+  if (raw === 0x0802) return -Infinity; // -INFINITY
+
+  let mantissa = raw & 0x0FFF;
+  let exponent = (raw >> 12) & 0x0F;
+
+  // Sign-extend mantissa (12-bit signed)
+  if (mantissa >= 0x0800) mantissa = mantissa - 0x1000;
+  // Sign-extend exponent (4-bit signed)
+  if (exponent >= 0x08) exponent = exponent - 0x10;
+
+  return mantissa * Math.pow(10, exponent);
+}
+
+/**
  * Parses binary data packet from Heart Rate Measurement Characteristic (0x2A37).
  */
 export function parseHeartRateData(value: DataView): BLEHeartRateData {
@@ -115,12 +139,12 @@ export function parseBloodPressureData(value: DataView): BLEBloodPressureData {
 
   let offset = 1;
 
-  // In SFLOAT format (IEEE-11073 16-bit float)
-  const sbpRaw = value.getFloat32 ? value.getUint16(offset, true) : value.getUint16(offset, true);
+  // Parse SFLOAT format (IEEE-11073 16-bit float)
+  const sbpRaw = parseSFLOAT(value, offset);
   offset += 2;
-  const dbpRaw = value.getUint16(offset, true);
+  const dbpRaw = parseSFLOAT(value, offset);
   offset += 2;
-  const mapRaw = value.getUint16(offset, true);
+  const mapRaw = parseSFLOAT(value, offset);
   offset += 2;
 
   // Conversion: 1 kPa = 7.50062 mmHg
@@ -151,8 +175,8 @@ export function parseBloodPressureData(value: DataView): BLEBloodPressureData {
  * High-level Web Bluetooth Peripheral Connection Manager.
  */
 export class WebBLEManager {
-  private device: any = null;
-  private server: any = null;
+  private device: BluetoothDevice | null = null;
+  private server: BluetoothRemoteGATTServer | null = null;
   private state: BLEDeviceState = {
     connected: false,
     deviceName: null,
@@ -198,8 +222,7 @@ export class WebBLEManager {
     }
 
     try {
-      const nav = navigator as any;
-      this.device = await nav.bluetooth.requestDevice({
+      this.device = await navigator.bluetooth.requestDevice({
         filters: [
           { services: [GATT_SERVICES.HEART_RATE] },
           { services: [GATT_SERVICES.BLOOD_PRESSURE] },
