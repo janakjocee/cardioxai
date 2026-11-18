@@ -107,7 +107,8 @@ interface PredictionResponse {
 }
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<'assessment' | 'telemetry' | 'ble' | 'smart' | 'genomics' | 'drift' | 'fhir' | 'audit' | 'xai' | 'counterfactual' | 'benchmarks' | 'fairness' | 'cohort' | 'report'>('assessment');
+  type TabId = 'assessment' | 'telemetry' | 'ble' | 'smart' | 'genomics' | 'drift' | 'fhir' | 'audit' | 'xai' | 'counterfactual' | 'benchmarks' | 'fairness' | 'cohort' | 'report';
+  const [activeTab, setActiveTab] = useState<TabId>('assessment');
   const [targetDisease, setTargetDisease] = useState<'cvd' | 'diabetes'>('cvd');
 
   // Patient inputs
@@ -139,7 +140,7 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<PredictionResponse | null>(null);
   const [cfResults, setCfResults] = useState<PredictionResponse | null>(null);
-  const [benchmarks, setBenchmarks] = useState<any>(null);
+  const [benchmarks, setBenchmarks] = useState<Record<string, unknown> | null>(null);
 
   // Fetch benchmark data once on mount
   useEffect(() => {
@@ -150,7 +151,7 @@ export default function Home() {
   }, []);
 
   // Compute prediction whenever patient data changes
-  const runPrediction = async (dataToPredict: typeof patientData, isCounterfactual = false) => {
+  const runPrediction = React.useCallback(async (dataToPredict: typeof patientData, isCounterfactual = false) => {
     try {
       if (!isCounterfactual) setLoading(true);
       const res = await fetch('/api/predict', {
@@ -169,11 +170,11 @@ export default function Home() {
     } finally {
       if (!isCounterfactual) setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     runPrediction(patientData);
-  }, [patientData]);
+  }, [patientData, runPrediction]);
 
   useEffect(() => {
     // Run counterfactual simulation
@@ -186,7 +187,7 @@ export default function Home() {
       weight: cfData.weight,
     };
     runPrediction(simulated, true);
-  }, [cfData, patientData]);
+  }, [cfData, patientData, runPrediction]);
 
   // Presets
   const applyPreset = (preset: 'preset1' | 'preset2' | 'preset3') => {
@@ -278,6 +279,7 @@ export default function Home() {
             <div className="flex items-center bg-slate-100 p-1 rounded-xl text-xs font-medium border border-slate-200">
               <button
                 onClick={() => setTargetDisease('cvd')}
+                aria-pressed={targetDisease === 'cvd'}
                 className={`px-3 py-1.5 rounded-lg transition-all ${
                   targetDisease === 'cvd'
                     ? 'bg-white text-indigo-700 font-semibold shadow-sm'
@@ -288,6 +290,8 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setTargetDisease('diabetes')}
+                aria-pressed={targetDisease === 'diabetes'}
+                title="View transferability benchmark (B7) — uses separate CDC BRFSS model"
                 className={`px-3 py-1.5 rounded-lg transition-all ${
                   targetDisease === 'diabetes'
                     ? 'bg-white text-indigo-700 font-semibold shadow-sm'
@@ -297,11 +301,18 @@ export default function Home() {
                 Type-2 Diabetes (B7 Transfer)
               </button>
             </div>
+            {targetDisease === 'diabetes' && (
+              <span className="text-[10px] text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                Note: Patient assessment uses CVD model. B7 benchmark viewable in the Benchmarks tab.
+              </span>
+            )}
 
             <button
               onClick={() => {
                 setActiveTab('report');
-                setTimeout(() => window.print(), 300);
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => window.print());
+                });
               }}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors border border-slate-200"
             >
@@ -338,7 +349,7 @@ export default function Home() {
 
         {/* Tab Navigation */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 border-t border-slate-100">
-          <nav className="flex space-x-1 sm:space-x-3 overflow-x-auto py-2 text-sm font-medium">
+          <nav role="tablist" aria-label="CardioXAI feature tabs" className="flex space-x-1 sm:space-x-3 overflow-x-auto py-2 text-sm font-medium">
             {[
               { id: 'assessment', label: 'Patient Assessment & Late Fusion', icon: Activity },
               { id: 'telemetry', label: 'Live Telemetry & Wearables', icon: Radio, highlight: true },
@@ -360,7 +371,10 @@ export default function Home() {
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id as any)}
+                  role="tab"
+                  aria-selected={isActive}
+                  aria-controls={`panel-${tab.id}`}
+                  onClick={() => setActiveTab(tab.id as TabId)}
                   className={`flex items-center gap-1.5 px-3 py-2 rounded-lg whitespace-nowrap text-xs transition-all ${
                     isActive
                       ? 'bg-indigo-50 text-indigo-700 font-semibold border border-indigo-100 shadow-sm'
@@ -1370,10 +1384,17 @@ export default function Home() {
                     Mandatory Section 3.11 analysis: Stratified by Biological Sex and Age Bands with 5% recall parity threshold
                   </p>
                 </div>
-                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  No Severe Disparities Detected
-                </div>
+                {(benchmarks as Record<string, unknown>)?.fairness_audit && ((benchmarks as Record<string, { parity_flag: boolean }>)?.fairness_audit as { disparities_detected?: boolean })?.disparities_detected ? (
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 text-amber-700 text-xs font-semibold border border-amber-200">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    Disparities Detected in Some Subgroups
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    No Severe Disparities Detected
+                  </div>
+                )}
               </div>
 
               <div className="overflow-x-auto">
@@ -1390,7 +1411,11 @@ export default function Home() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {benchmarks?.fairness_audit?.subgroups && Object.entries(benchmarks.fairness_audit.subgroups).map(([name, data]: [string, any]) => (
+                    {benchmarks?.fairness_audit?.subgroups && Object.entries((benchmarks as Record<string, Record<string, Record<string, unknown>>>).fairness_audit.subgroups).map(([name, rawData]: [string, unknown]) => {
+                      const data = rawData as { sample_size: number; roc_auc: number; accuracy: number; recall: number; delta_recall_vs_pooled: number; parity_flag: boolean };
+                      const deltaPercent = Math.abs(data.delta_recall_vs_pooled * 100);
+                      const hasParity = data.parity_flag === true;
+                      return (
                       <tr key={name} className="hover:bg-slate-50 font-medium">
                         <td className="py-3 px-4 font-bold text-slate-900">{name}</td>
                         <td className="py-3 px-4 font-mono">{data.sample_size}</td>
@@ -1401,12 +1426,19 @@ export default function Home() {
                           {data.delta_recall_vs_pooled >= 0 ? `+${(data.delta_recall_vs_pooled * 100).toFixed(1)}%` : `${(data.delta_recall_vs_pooled * 100).toFixed(1)}%`}
                         </td>
                         <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
-                            PASSED (&lt;5% Delta)
-                          </span>
+                          {hasParity ? (
+                            <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-amber-50 text-amber-700 border border-amber-200">
+                              FLAGGED ({deltaPercent.toFixed(1)}% Delta)
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                              PASSED (&lt;5% Delta)
+                            </span>
+                          )}
                         </td>
                       </tr>
-                    ))}
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
